@@ -18,24 +18,22 @@ import { cn } from "@/lib/utils";
 
 const invigilatorSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  department: z.string().default(""),
-  institute: z.string().default(""),
+  department: z.string(),
+  institute: z.string(),
   mobile: z
     .string()
     .refine(
       (val) => !val || /^[0-9]{10,11}$/.test(val),
       "Mobile must be 10–11 digits"
-    )
-    .default(""),
+    ),
   email: z
     .string()
     .refine(
       (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
       "Invalid email address"
-    )
-    .default(""),
+    ),
   status: z.enum(["available", "unavailable"]),
-  remarks: z.string().default(""),
+  remarks: z.string(),
 });
 
 export type InvigilatorFormValues = z.infer<typeof invigilatorSchema>;

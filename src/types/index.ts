@@ -53,6 +53,36 @@ export interface ExamAssignment {
   updated_at: string;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface ExamListResponse {
+  data: Exam[];
+  meta: PaginationMeta;
+}
+
+export interface DashboardConflict {
+  type: string;
+  message: string;
+  exam_id: string | null;
+  exam_name: string | null;
+  invigilator_id: string | null;
+  details: Record<string, unknown> | null;
+}
+
+export interface DashboardStats {
+  exams_today: number;
+  available_invigilators: number;
+  unavailable_invigilators: number;
+  rooms_in_use_today: number;
+  rooms_free_today: number;
+  conflicts: DashboardConflict[];
+}
+
 export interface AuditLog {
   id: string;
   user_id: string | null;
