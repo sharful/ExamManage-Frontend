@@ -46,6 +46,7 @@ export function useRooms(params: RoomsParams = {}) {
       });
       return data;
     },
+    staleTime: 5 * 60 * 1000, // rooms are static data — 5-minute cache
   });
 }
 

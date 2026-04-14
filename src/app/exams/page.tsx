@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, startOfMonth, endOfMonth } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, BookOpen } from "lucide-react";
 import { useExams } from "@/hooks/use-exams";
 import { AppShell } from "@/components/layout/app-shell";
@@ -19,9 +20,14 @@ export default function ExamsPage() {
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
-  // Fetch all exams for the displayed month (broad range)
-  const monthStr = format(viewDate, "yyyy-MM");
-  const { data, isLoading, isError } = useExams({ limit: 200 });
+  // Fetch exams for the displayed month using date range filter (server-side)
+  const monthStart = format(startOfMonth(viewDate), "yyyy-MM-dd");
+  const monthEnd = format(endOfMonth(viewDate), "yyyy-MM-dd");
+  const { data, isLoading, isError } = useExams({
+    date_from: monthStart,
+    date_to: monthEnd,
+    limit: 200,
+  });
 
   const allExams: Exam[] = data?.data ?? [];
 
@@ -58,8 +64,17 @@ export default function ExamsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
-          Loading…
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-6 lg:items-start">
+          <div className="lg:flex-1 space-y-3">
+            <Skeleton className="h-8 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+          <div className="lg:w-72 xl:w-80 space-y-2">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 w-full rounded-xl" />
+            ))}
+          </div>
         </div>
       ) : isError ? (
         <div className="flex items-center justify-center py-20 text-destructive text-sm">

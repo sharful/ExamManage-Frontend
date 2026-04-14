@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Hash, Pencil, Trash2 } from "lucide-react";
+import { SkeletonTableRow, SkeletonCard } from "@/components/ui/skeleton";
 import { isAxiosError } from "axios";
 import { useRooms, useDeleteRoom } from "@/hooks/use-rooms";
 import type { Room } from "@/types";
@@ -80,9 +81,24 @@ export default function RoomsPage() {
 
       {/* ── Content ─────────────────────────────────────────────────────── */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
-          Loading…
-        </div>
+        <>
+          {/* Desktop skeleton */}
+          <div className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden">
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-border">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <SkeletonTableRow key={i} cells={3} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile skeleton */}
+          <div className="flex flex-col gap-2 lg:hidden">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </>
       ) : isError ? (
         <div className="flex items-center justify-center py-20 text-destructive text-sm">
           Failed to load rooms. Please try again.

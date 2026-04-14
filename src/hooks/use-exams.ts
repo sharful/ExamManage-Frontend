@@ -9,6 +9,8 @@ export interface ExamsParams {
   limit?: number;
   name?: string;
   exam_date?: string;
+  date_from?: string;
+  date_to?: string;
   room?: string;
 }
 
@@ -77,14 +79,16 @@ const ASSIGNMENTS_KEY = "assignments" as const;
 // ── Hooks ──────────────────────────────────────────────────────────────────
 
 export function useExams(params: ExamsParams = {}) {
-  const { page = 1, limit = 50, name, exam_date, room } = params;
+  const { page = 1, limit = 50, name, exam_date, date_from, date_to, room } = params;
 
   return useQuery({
-    queryKey: [EXAMS_KEY, { page, limit, name, exam_date, room }],
+    queryKey: [EXAMS_KEY, { page, limit, name, exam_date, date_from, date_to, room }],
     queryFn: async () => {
       const queryParams: Record<string, string | number> = { page, limit };
       if (name) queryParams.name = name;
       if (exam_date) queryParams.exam_date = exam_date;
+      if (date_from) queryParams.date_from = date_from;
+      if (date_to) queryParams.date_to = date_to;
       if (room) queryParams.room = room;
 
       const { data } = await api.get<ExamsListResponse>("/api/exams", {

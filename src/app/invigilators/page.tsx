@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { SkeletonTableRow, SkeletonCard } from "@/components/ui/skeleton";
 import {
   useInvigilators,
   useInvigilatorDepartments,
@@ -215,9 +216,24 @@ export default function InvigilatorsPage() {
 
           {/* Content */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
-              Loading…
-            </div>
+            <>
+              {/* Desktop skeleton */}
+              <div className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <tbody className="divide-y divide-border">
+                    {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                      <SkeletonTableRow key={i} cells={5} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile skeleton */}
+              <div className="flex flex-col gap-2 lg:hidden">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
+            </>
           ) : isError ? (
             <div className="flex items-center justify-center py-20 text-destructive text-sm">
               Failed to load invigilators. Please try again.
@@ -321,8 +337,14 @@ export default function InvigilatorsPage() {
 
           {/* Workload summary table */}
           {workloadLoading ? (
-            <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
-              Loading…
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-border">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <SkeletonTableRow key={i} cells={2} />
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
             <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
