@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { isAxiosError } from "axios";
+import { AlertTriangle } from "lucide-react";
 import type { ExamAssignment, Room, TimeSlot } from "@/types";
 import {
   useCreateAssignment,
@@ -17,8 +19,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { ConflictBanner } from "@/components/exams/conflict-badge";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogContent,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { isAxiosError } from "axios";
 
 // ── Schema ─────────────────────────────────────────────────────────────────
 
@@ -61,6 +69,13 @@ export function AssignmentForm({
   const createMutation = useCreateAssignment();
   const updateMutation = useUpdateAssignment();
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  // Stale-data conflict dialog state
+  const [staleConflict, setStaleConflict] = useState<{
+    serverUpdatedAt: string;
+  } | null>(null);
+  // Cache the last submitted values for force-save
+  const pendingValuesRef = useRef<AssignmentFormValues | null>(null);
 
   const { data: roomsData } = useRooms({ limit: 200 });
   const rooms: Room[] = roomsData?.data ?? [];
@@ -139,6 +154,24 @@ export function AssignmentForm({
 
   // ── Submit ─────────────────────────────────────────────────────────────
 
+  function buildUpdatePayload(values: AssignmentFormValues, forceIgnoreStale = false) {
+    return {
+      room_id: values.room_id,
+      seats: values.seats,
+      head_invigilator_id: values.head_invigilator_id,
+      invigilator1_id: values.invigilator1_id,
+      invigilator2_id: values.invigilator2_id || null,
+      // Send the version the client loaded so the server can detect staleness
+      client_updated_at: forceIgnoreStale ? undefined : assignment?.updated_at,
+    };
+  }
+
+  function extractStaleConflict(detail: unknown): string | null {
+    if (!Array.isArray(detail)) return null;
+    const stale = (detail as ConflictError[]).find((e) => e.type === "STALE_DATA");
+    return stale?.details?.server_updated_at as string | null ?? null;
+  }
+
   async function onSubmit(values: AssignmentFormValues) {
     clearErrors("root");
 
@@ -146,13 +179,7 @@ export function AssignmentForm({
       if (isEdit) {
         const result = await updateMutation.mutateAsync({
           id: assignment.id,
-          payload: {
-            room_id: values.room_id,
-            seats: values.seats,
-            head_invigilator_id: values.head_invigilator_id,
-            invigilator1_id: values.invigilator1_id,
-            invigilator2_id: values.invigilator2_id || null,
-          },
+          payload: buildUpdatePayload(values),
         });
 
         if (result.conflicts?.length) {
@@ -186,18 +213,22 @@ export function AssignmentForm({
       onSuccess?.();
     } catch (err) {
       if (isAxiosError(err) && err.response?.data) {
-        const data = err.response.data as {
-          conflicts?: ConflictError[];
-          detail?: string;
-        };
-        if (data.conflicts?.length) {
+        const detail = err.response.data?.detail;
+        // Stale-data conflict → show dedicated dialog
+        const serverTs = extractStaleConflict(detail);
+        if (serverTs) {
+          pendingValuesRef.current = values;
+          setStaleConflict({ serverUpdatedAt: serverTs });
+          return;
+        }
+        if (Array.isArray(detail) && detail.length) {
           setError("root", {
-            message: data.conflicts.map((c: ConflictError) => c.message).join(" "),
+            message: (detail as ConflictError[]).map((c) => c.message).join(" "),
           });
           return;
         }
-        if (typeof data.detail === "string") {
-          setError("root", { message: data.detail });
+        if (typeof detail === "string") {
+          setError("root", { message: detail });
           return;
         }
       }
@@ -207,6 +238,28 @@ export function AssignmentForm({
           : "Failed to create assignment. Please try again.",
       });
     }
+  }
+
+  async function handleForceSave() {
+    if (!pendingValuesRef.current || !assignment) return;
+    setStaleConflict(null);
+    clearErrors("root");
+    try {
+      await updateMutation.mutateAsync({
+        id: assignment.id,
+        payload: buildUpdatePayload(pendingValuesRef.current, true),
+        force: true,
+      });
+      toast("Assignment updated", "success");
+      onSuccess?.();
+    } catch {
+      setError("root", { message: "Force-save failed. Please try again." });
+    }
+  }
+
+  function handleReload() {
+    setStaleConflict(null);
+    onCancel?.();
   }
 
   // ── Build invigilator options (always show all available, mark selected) ──
@@ -437,6 +490,42 @@ export function AssignmentForm({
               : "Add assignment"}
         </Button>
       </div>
+
+      {/* ── Stale-data conflict dialog ──────────────────────────────────── */}
+      {staleConflict && (
+        <Dialog
+          open={!!staleConflict}
+          onOpenChange={(open) => {
+            if (!open) setStaleConflict(null);
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-amber-500 shrink-0" />
+              Assignment modified by someone else
+            </DialogTitle>
+          </DialogHeader>
+          <DialogContent className="pb-2">
+            <p className="text-sm text-muted-foreground">
+              This assignment was updated since you opened it. Reloading will
+              show you the latest version. If you force-save, your changes will
+              overwrite the other user&apos;s edits.
+            </p>
+          </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleReload}>
+              Reload
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleForceSave}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "Saving…" : "Force Save"}
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
     </form>
   );
 }

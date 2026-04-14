@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import api from "@/lib/api";
-import type { Room } from "@/types";
+import type { Room, RoomCapacityWarning } from "@/types";
+
+export type { RoomCapacityWarning };
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -60,6 +63,14 @@ export function useCreateRoom() {
   });
 }
 
+/** Thrown by useUpdateRoom when the backend signals a capacity conflict. */
+export class RoomCapacityError extends Error {
+  constructor(public readonly warning: RoomCapacityWarning) {
+    super(warning.detail);
+    this.name = "RoomCapacityError";
+  }
+}
+
 export function useUpdateRoom() {
   const queryClient = useQueryClient();
 
@@ -67,12 +78,29 @@ export function useUpdateRoom() {
     mutationFn: async ({
       id,
       payload,
+      force = false,
     }: {
       id: string;
       payload: Partial<RoomPayload>;
+      force?: boolean;
     }) => {
-      const { data } = await api.put<Room>(`/api/rooms/${id}`, payload);
-      return data;
+      try {
+        const { data } = await api.put<Room>(
+          `/api/rooms/${id}`,
+          payload,
+          { params: force ? { force: "true" } : undefined }
+        );
+        return data;
+      } catch (err) {
+        if (
+          isAxiosError(err) &&
+          err.response?.status === 409 &&
+          err.response.data?.violations
+        ) {
+          throw new RoomCapacityError(err.response.data as RoomCapacityWarning);
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [ROOMS_KEY] });

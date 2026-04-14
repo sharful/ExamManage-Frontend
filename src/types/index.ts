@@ -93,3 +93,82 @@ export interface AuditLog {
   new_values: Record<string, unknown> | null;
   timestamp: string;
 }
+
+// ── Workload ──────────────────────────────────────────────────────────────────
+
+export interface WorkloadMonthEntry {
+  year: number;
+  month: number;
+  count: number;
+}
+
+export interface InvigilatorWorkload {
+  invigilator_id: string;
+  name: string;
+  total_assignments: number;
+  assignments_by_month: WorkloadMonthEntry[];
+  assigned_dates: string[];
+}
+
+export interface WorkloadSummaryItem {
+  invigilator_id: string;
+  name: string;
+  assignment_count: number;
+}
+
+export interface WorkloadSummaryResponse {
+  month: number;
+  year: number;
+  data: WorkloadSummaryItem[];
+}
+
+// ── Room capacity warning ──────────────────────────────────────────────────────
+
+export interface CapacityViolation {
+  assignment_id: string;
+  exam_id: string;
+  exam_name: string;
+  seats: number;
+}
+
+export interface RoomCapacityWarning {
+  detail: string;
+  violations: CapacityViolation[];
+}
+
+// ── Invigilator update response ───────────────────────────────────────────────
+
+export interface AffectedAssignment {
+  assignment_id: string;
+  exam_id: string;
+  exam_name: string;
+  exam_date: string;
+  room_id: string;
+  room_number: string;
+  role: "head" | "invigilator1" | "invigilator2";
+}
+
+export interface InvigilatorUpdateResponse {
+  invigilator: Invigilator;
+  affected_assignments: AffectedAssignment[];
+}
+
+// ── Clone ─────────────────────────────────────────────────────────────────────
+
+export interface ClonedAssignmentResult {
+  assignment: ExamAssignment;
+  has_conflicts: boolean;
+  conflicts: Array<{
+    type: string;
+    message: string;
+    invigilator_id?: string;
+    details?: Record<string, unknown>;
+  }>;
+}
+
+export interface ExamCloneResponse {
+  exam: Exam;
+  assignments: ClonedAssignmentResult[];
+  total_assignments: number;
+  conflict_count: number;
+}

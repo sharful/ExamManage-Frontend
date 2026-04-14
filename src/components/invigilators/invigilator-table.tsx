@@ -44,13 +44,33 @@ function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
   return <ArrowUpDown className="size-3 ml-1 inline opacity-40" />;
 }
 
+// ── Duty count badge ───────────────────────────────────────────────────────
+
+function DutyBadge({ count }: { count: number }) {
+  const variant =
+    count > 10
+      ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+      : count >= 5
+        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+        : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${variant}`}>
+      {count}
+    </span>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────────
 
 interface InvigilatorTableProps {
   data: Invigilator[];
+  /** Optional map of invigilator id → duty count for the current month */
+  dutyCountMap?: Map<string, number>;
+  /** Label shown in the duty column header, e.g. "Apr duties" */
+  dutyColumnLabel?: string;
 }
 
-export function InvigilatorTable({ data }: InvigilatorTableProps) {
+export function InvigilatorTable({ data, dutyCountMap, dutyColumnLabel = "Duties" }: InvigilatorTableProps) {
   const router = useRouter();
   const deleteMutation = useDeleteInvigilator();
 
@@ -85,6 +105,19 @@ export function InvigilatorTable({ data }: InvigilatorTableProps) {
         </Badge>
       ),
     }),
+    ...(dutyCountMap
+      ? [
+          col.display({
+            id: "duty_count",
+            header: () => <span>{dutyColumnLabel}</span>,
+            enableSorting: false,
+            cell: ({ row }) => {
+              const count = dutyCountMap.get(row.original.id) ?? 0;
+              return <DutyBadge count={count} />;
+            },
+          }),
+        ]
+      : []),
     col.display({
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,

@@ -6,19 +6,25 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   ChevronLeft,
+  Copy,
   Plus,
   Pencil,
   Trash2,
   CheckCircle2,
   AlertCircle,
   Clock,
+  Wand2,
+  XCircle,
 } from "lucide-react";
 import {
   useExam,
   useDeleteExam,
   useDeleteAssignment,
   useUpdateExam,
+  useBulkAutoAssign,
+  useCloneExam,
 } from "@/hooks/use-exams";
+import type { BulkAutoAssignResponse } from "@/hooks/use-exams";
 import { useRooms } from "@/hooks/use-rooms";
 import { useInvigilators } from "@/hooks/use-invigilators";
 import { toast } from "@/hooks/use-toast";
@@ -37,7 +43,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { ExamAssignment, Room, Invigilator, TimeSlot } from "@/types";
+import type { ExamAssignment, ExamCloneResponse, Room, Invigilator, TimeSlot } from "@/types";
 
 // ── Props ──────────────────────────────────────────────────────────────────
 
@@ -250,6 +256,359 @@ function EditExamDialog({
   );
 }
 
+// ── Auto-assign dialog ─────────────────────────────────────────────────────
+
+interface AutoAssignDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  examId: string;
+  assignedRoomIds: Set<string>;
+  roomMap: Map<string, Room>;
+}
+
+function AutoAssignDialog({
+  open,
+  onOpenChange,
+  examId,
+  assignedRoomIds,
+  roomMap,
+}: AutoAssignDialogProps) {
+  const bulkAutoAssign = useBulkAutoAssign();
+  const unassignedRooms = [...roomMap.values()].filter(
+    (r) => !assignedRoomIds.has(r.id)
+  );
+
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(unassignedRooms.map((r) => r.id))
+  );
+  const [result, setResult] = useState<BulkAutoAssignResponse | null>(null);
+
+  // Reset state whenever the dialog opens
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setSelected(new Set(unassignedRooms.map((r) => r.id)));
+      setResult(null);
+    }
+    onOpenChange(nextOpen);
+  };
+
+  function toggleRoom(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selected.size === unassignedRooms.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(unassignedRooms.map((r) => r.id)));
+    }
+  }
+
+  async function handleAutoAssign() {
+    if (selected.size === 0) return;
+    try {
+      const response = await bulkAutoAssign.mutateAsync({
+        exam_id: examId,
+        room_ids: [...selected],
+      });
+      setResult(response);
+    } catch {
+      // handled by result being null; toast if needed
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogHeader>
+        <DialogTitle>Auto-assign rooms</DialogTitle>
+      </DialogHeader>
+      <DialogContent className="pb-2">
+        {result ? (
+          // ── Results view ─────────────────────────────────────────────────
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="size-4" />
+                {result.assigned_count} assigned
+              </span>
+              {result.failed_count > 0 && (
+                <span className="flex items-center gap-1 text-destructive">
+                  <XCircle className="size-4" />
+                  {result.failed_count} failed
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-1.5 max-h-72 overflow-y-auto">
+              {result.results.map((r) => {
+                const room = roomMap.get(r.room_id);
+                return (
+                  <div
+                    key={r.room_id}
+                    className={cn(
+                      "rounded-md border px-3 py-2 text-sm flex items-start gap-2",
+                      r.success
+                        ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
+                        : "border-destructive/30 bg-destructive/5"
+                    )}
+                  >
+                    {r.success ? (
+                      <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                    ) : (
+                      <XCircle className="size-4 text-destructive mt-0.5 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        Room {room?.room_number ?? r.room_id.slice(0, 8)}
+                      </p>
+                      {!r.success && r.reason && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {r.reason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          // ── Selection view ────────────────────────────────────────────────
+          <div className="flex flex-col gap-3">
+            {unassignedRooms.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                All rooms are already assigned for this exam.
+              </p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Select rooms to auto-assign invigilators:
+                  </p>
+                  <button
+                    type="button"
+                    className="text-xs text-primary hover:underline"
+                    onClick={toggleAll}
+                  >
+                    {selected.size === unassignedRooms.length
+                      ? "Deselect all"
+                      : "Select all"}
+                  </button>
+                </div>
+                <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto">
+                  {unassignedRooms.map((room) => (
+                    <label
+                      key={room.id}
+                      className="flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        className="size-4 shrink-0 accent-primary"
+                        checked={selected.has(room.id)}
+                        onChange={() => toggleRoom(room.id)}
+                      />
+                      <span className="text-sm flex-1">
+                        Room {room.room_number}
+                      </span>
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        {room.max_seats} seats
+                      </Badge>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </DialogContent>
+      <DialogFooter>
+        {result ? (
+          <Button onClick={() => onOpenChange(false)}>Done</Button>
+        ) : (
+          <>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAutoAssign}
+              disabled={
+                bulkAutoAssign.isPending ||
+                selected.size === 0 ||
+                unassignedRooms.length === 0
+              }
+            >
+              <Wand2 />
+              {bulkAutoAssign.isPending
+                ? "Assigning…"
+                : `Auto-assign ${selected.size > 0 ? selected.size : ""} room${selected.size !== 1 ? "s" : ""}`}
+            </Button>
+          </>
+        )}
+      </DialogFooter>
+    </Dialog>
+  );
+}
+
+// ── Clone exam dialog ──────────────────────────────────────────────────────
+
+interface CloneExamDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  examId: string;
+  sourceExamName: string;
+}
+
+function CloneExamDialog({
+  open,
+  onOpenChange,
+  examId,
+  sourceExamName,
+}: CloneExamDialogProps) {
+  const router = useRouter();
+  const cloneExam = useCloneExam();
+  const [name, setName] = useState(`${sourceExamName} (copy)`);
+  const [date, setDate] = useState("");
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<ExamCloneResponse | null>(null);
+
+  // Reset form whenever dialog opens
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setName(`${sourceExamName} (copy)`);
+      setDate("");
+      setError("");
+      setResult(null);
+    }
+    onOpenChange(nextOpen);
+  };
+
+  async function handleClone() {
+    if (!name.trim()) {
+      setError("Exam name is required.");
+      return;
+    }
+    if (!date) {
+      setError("Date is required.");
+      return;
+    }
+    setError("");
+    try {
+      const res = await cloneExam.mutateAsync({
+        id: examId,
+        payload: { new_exam_name: name.trim(), new_date: date },
+      });
+      setResult(res);
+    } catch {
+      setError("Failed to clone exam. Please try again.");
+    }
+  }
+
+  function handleGoToExam() {
+    if (!result) return;
+    onOpenChange(false);
+    router.push(`/exams/${result.exam.id}`);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogHeader>
+        <DialogTitle>Clone exam</DialogTitle>
+      </DialogHeader>
+      <DialogContent className="pb-2">
+        {result ? (
+          // ── Result view ────────────────────────────────────────────────────
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 shrink-0" />
+              <span>
+                <strong>{result.exam.exam_name}</strong> created with{" "}
+                {result.total_assignments} assignment
+                {result.total_assignments !== 1 ? "s" : ""}.
+              </span>
+            </div>
+            {result.conflict_count > 0 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <AlertCircle className="size-4 shrink-0" />
+                  {result.conflict_count} assignment
+                  {result.conflict_count !== 1 ? "s have" : " has"} conflicts:
+                </p>
+                <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+                  {result.assignments
+                    .filter((a) => a.has_conflicts)
+                    .map((a) => (
+                      <div
+                        key={a.assignment.id}
+                        className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2 text-xs"
+                      >
+                        {a.conflicts.map((c, i) => (
+                          <p key={i} className="text-amber-700 dark:text-amber-300">
+                            {c.message}
+                          </p>
+                        ))}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          // ── Form view ──────────────────────────────────────────────────────
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Creates a new exam with the same room and invigilator assignments.
+              Conflicts on the new date will be flagged.
+            </p>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">
+                New exam name <span className="text-destructive">*</span>
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Mathematics Final (Resit)"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">
+                New date <span className="text-destructive">*</span>
+              </label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </DialogContent>
+      <DialogFooter>
+        {result ? (
+          <Button onClick={handleGoToExam}>
+            Go to cloned exam
+          </Button>
+        ) : (
+          <>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleClone} disabled={cloneExam.isPending}>
+              <Copy />
+              {cloneExam.isPending ? "Cloning…" : "Clone exam"}
+            </Button>
+          </>
+        )}
+      </DialogFooter>
+    </Dialog>
+  );
+}
+
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function ExamDetailPage({ params }: Props) {
@@ -278,7 +637,9 @@ export default function ExamDetailPage({ params }: Props) {
   // Dialog state
   const [showEditExam, setShowEditExam] = useState(false);
   const [showDeleteExam, setShowDeleteExam] = useState(false);
+  const [showCloneExam, setShowCloneExam] = useState(false);
   const [showAddAssignment, setShowAddAssignment] = useState(false);
+  const [showAutoAssign, setShowAutoAssign] = useState(false);
   const [editingAssignment, setEditingAssignment] =
     useState<ExamAssignment | null>(null);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<
@@ -331,6 +692,10 @@ export default function ExamDetailPage({ params }: Props) {
   }
 
   const assignments: ExamAssignment[] = exam.assignments ?? [];
+  const assignedRoomIds = useMemo(
+    () => new Set(assignments.map((a) => a.room_id)),
+    [assignments]
+  );
 
   const formattedDate = (() => {
     try {
@@ -381,6 +746,14 @@ export default function ExamDetailPage({ params }: Props) {
                 Edit
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCloneExam(true)}
+              >
+                <Copy />
+                Clone
+              </Button>
+              <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => setShowDeleteExam(true)}
@@ -402,10 +775,20 @@ export default function ExamDetailPage({ params }: Props) {
               ({assignments.length})
             </span>
           </h2>
-          <Button size="sm" onClick={() => setShowAddAssignment(true)}>
-            <Plus />
-            Add room
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAutoAssign(true)}
+            >
+              <Wand2 />
+              Auto-assign
+            </Button>
+            <Button size="sm" onClick={() => setShowAddAssignment(true)}>
+              <Plus />
+              Add room
+            </Button>
+          </div>
         </div>
 
         {assignments.length === 0 ? (
@@ -449,6 +832,27 @@ export default function ExamDetailPage({ params }: Props) {
           currentName={exam.exam_name}
           currentDate={exam.exam_date}
           currentSlot={exam.time_slot}
+        />
+      )}
+
+      {/* Clone exam */}
+      {showCloneExam && (
+        <CloneExamDialog
+          open={showCloneExam}
+          onOpenChange={setShowCloneExam}
+          examId={exam.id}
+          sourceExamName={exam.exam_name}
+        />
+      )}
+
+      {/* Auto-assign */}
+      {showAutoAssign && (
+        <AutoAssignDialog
+          open={showAutoAssign}
+          onOpenChange={setShowAutoAssign}
+          examId={exam.id}
+          assignedRoomIds={assignedRoomIds}
+          roomMap={roomMap}
         />
       )}
 

@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import type { Invigilator, InvigilatorStatus } from "@/types";
+import type {
+  Invigilator,
+  InvigilatorStatus,
+  InvigilatorUpdateResponse,
+  InvigilatorWorkload,
+  WorkloadSummaryResponse,
+} from "@/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -88,7 +94,7 @@ export function useUpdateInvigilator() {
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: InvigilatorPayload }) => {
-      const { data } = await api.put<Invigilator>(`/api/invigilators/${id}`, payload);
+      const { data } = await api.put<InvigilatorUpdateResponse>(`/api/invigilators/${id}`, payload);
       return data;
     },
     onSuccess: (_data, { id }) => {
@@ -107,6 +113,34 @@ export function useDeleteInvigilator() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [INVIGILATORS_KEY] });
+    },
+  });
+}
+
+// ── Workload hooks ─────────────────────────────────────────────────────────
+
+export function useInvigilatorWorkload(id: string | null) {
+  return useQuery({
+    queryKey: [INVIGILATORS_KEY, id, "workload"],
+    queryFn: async () => {
+      const { data } = await api.get<InvigilatorWorkload>(
+        `/api/invigilators/${id}/workload`
+      );
+      return data;
+    },
+    enabled: !!id && id !== "new",
+  });
+}
+
+export function useWorkloadSummary(month: number, year: number) {
+  return useQuery({
+    queryKey: [INVIGILATORS_KEY, "workload-summary", month, year],
+    queryFn: async () => {
+      const { data } = await api.get<WorkloadSummaryResponse>(
+        "/api/invigilators/workload-summary",
+        { params: { month, year } }
+      );
+      return data;
     },
   });
 }

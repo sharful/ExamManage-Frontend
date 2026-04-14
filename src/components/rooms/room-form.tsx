@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { isAxiosError } from "axios";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 import type { Room } from "@/types";
-import { useCreateRoom, useUpdateRoom } from "@/hooks/use-rooms";
+import { useCreateRoom, useUpdateRoom, RoomCapacityError } from "@/hooks/use-rooms";
+import type { RoomCapacityWarning } from "@/hooks/use-rooms";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +48,11 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
   const updateMutation = useUpdateRoom();
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  // Capacity warning state
+  const [capacityWarning, setCapacityWarning] = useState<RoomCapacityWarning | null>(null);
+  // Keep last payload so we can re-submit with force=true
+  const pendingPayloadRef = useRef<RoomFormValues | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -64,39 +72,71 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
           ? { room_number: room.room_number, max_seats: room.max_seats }
           : { room_number: "", max_seats: 30 }
       );
+      setCapacityWarning(null);
+      pendingPayloadRef.current = null;
     }
   }, [open, room, reset]);
 
-  async function onSubmit(values: RoomFormValues) {
-    const payload = {
-      room_number: values.room_number.trim(),
-      max_seats: values.max_seats,
-    };
+  async function doUpdate(values: RoomFormValues, force = false) {
+    const payload = { room_number: values.room_number.trim(), max_seats: values.max_seats };
+    await updateMutation.mutateAsync({ id: room!.id, payload, force });
+    toast("Room updated", "success");
+    onOpenChange(false);
+  }
 
-    try {
-      if (isEdit) {
-        await updateMutation.mutateAsync({ id: room.id, payload });
-        toast("Room updated", "success");
-      } else {
+  async function onSubmit(values: RoomFormValues) {
+    if (!isEdit) {
+      const payload = { room_number: values.room_number.trim(), max_seats: values.max_seats };
+      try {
         await createMutation.mutateAsync(payload);
         toast("Room created", "success");
+        onOpenChange(false);
+      } catch (err) {
+        const detail =
+          isAxiosError(err) && typeof err.response?.data?.detail === "string"
+            ? err.response.data.detail
+            : undefined;
+        if (detail?.includes("already exists")) {
+          setError("room_number", { message: "Room number already exists" });
+        } else {
+          setError("root", { message: "Failed to create room. Please try again." });
+        }
       }
-      onOpenChange(false);
+      return;
+    }
+
+    try {
+      await doUpdate(values);
     } catch (err) {
+      if (err instanceof RoomCapacityError) {
+        pendingPayloadRef.current = values;
+        setCapacityWarning(err.warning);
+        return;
+      }
       const detail =
         isAxiosError(err) && typeof err.response?.data?.detail === "string"
           ? err.response.data.detail
           : undefined;
-
       if (detail?.includes("already exists")) {
         setError("room_number", { message: "Room number already exists" });
       } else {
-        setError("root", {
-          message: isEdit
-            ? "Failed to update room. Please try again."
-            : "Failed to create room. Please try again.",
-        });
+        setError("root", { message: "Failed to update room. Please try again." });
       }
+    }
+  }
+
+  async function handleForceSave() {
+    if (!pendingPayloadRef.current) return;
+    try {
+      await doUpdate(pendingPayloadRef.current, true);
+      setCapacityWarning(null);
+    } catch (err) {
+      setCapacityWarning(null);
+      const detail =
+        isAxiosError(err) && typeof err.response?.data?.detail === "string"
+          ? err.response.data.detail
+          : undefined;
+      setError("root", { message: detail ?? "Failed to update room. Please try again." });
     }
   }
 
@@ -181,6 +221,69 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
               : "Add room"}
         </Button>
       </DialogFooter>
+
+      {/* ── Capacity violation warning dialog ──────────────────────────── */}
+      {capacityWarning && (
+        <Dialog
+          open={!!capacityWarning}
+          onOpenChange={(open) => {
+            if (!open) setCapacityWarning(null);
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-amber-500 shrink-0" />
+              Capacity violation
+            </DialogTitle>
+          </DialogHeader>
+          <DialogContent className="pb-2">
+            <p className="text-sm text-muted-foreground mb-3">
+              {capacityWarning.detail}. The following assignment
+              {capacityWarning.violations.length !== 1 ? "s" : ""} currently
+              exceed the new capacity:
+            </p>
+            <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto">
+              {capacityWarning.violations.map((v) => (
+                <div
+                  key={v.assignment_id}
+                  className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2 flex items-center justify-between gap-3"
+                >
+                  <div className="text-sm min-w-0">
+                    <p className="font-medium truncate">{v.exam_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {v.seats} seats assigned
+                    </p>
+                  </div>
+                  <Link
+                    href={`/exams/${v.exam_id}`}
+                    className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    onClick={() => setCapacityWarning(null)}
+                  >
+                    View exam
+                    <ExternalLink className="size-3" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              You can reduce the capacity anyway and adjust affected assignments
+              manually, or cancel to keep the current capacity.
+            </p>
+          </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCapacityWarning(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleForceSave}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "Saving…" : "Reduce capacity anyway"}
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

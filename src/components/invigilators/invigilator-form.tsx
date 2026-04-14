@@ -1,17 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import type { Invigilator } from "@/types";
+import { format } from "date-fns";
+import { AlertTriangle, ExternalLink } from "lucide-react";
+import type { AffectedAssignment, Invigilator } from "@/types";
 import { useCreateInvigilator, useUpdateInvigilator } from "@/hooks/use-invigilators";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogContent,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 // ── Validation schema ──────────────────────────────────────────────────────
@@ -51,6 +61,9 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
   const createMutation = useCreateInvigilator();
   const updateMutation = useUpdateInvigilator();
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  // Warning dialog when marking an invigilator unavailable
+  const [affectedAssignments, setAffectedAssignments] = useState<AffectedAssignment[]>([]);
 
   const {
     register,
@@ -99,8 +112,12 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
 
     try {
       if (isEdit) {
-        await updateMutation.mutateAsync({ id: invigilator.id, payload });
+        const result = await updateMutation.mutateAsync({ id: invigilator.id, payload });
         toast("Invigilator updated successfully", "success");
+        if (result.affected_assignments.length > 0) {
+          setAffectedAssignments(result.affected_assignments);
+          return; // Stay on page to show warning dialog
+        }
       } else {
         await createMutation.mutateAsync(payload);
         toast("Invigilator created successfully", "success");
@@ -271,6 +288,82 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
               : "Create invigilator"}
         </Button>
       </div>
+
+      {/* ── Unavailability warning dialog ──────────────────────────────── */}
+      <Dialog
+        open={affectedAssignments.length > 0}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAffectedAssignments([]);
+            router.push("/invigilators");
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="size-5 text-amber-500 shrink-0" />
+            Invigilator marked unavailable
+          </DialogTitle>
+        </DialogHeader>
+        <DialogContent className="pb-2">
+          <p className="text-sm text-muted-foreground mb-3">
+            This invigilator has{" "}
+            <span className="font-medium text-foreground">
+              {affectedAssignments.length} upcoming assignment
+              {affectedAssignments.length !== 1 ? "s" : ""}
+            </span>{" "}
+            that may need to be reassigned:
+          </p>
+          <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+            {affectedAssignments.map((a) => {
+              const roleLabel =
+                a.role === "head"
+                  ? "Head Invigilator"
+                  : a.role === "invigilator1"
+                  ? "Invigilator 1"
+                  : "Invigilator 2";
+              const formattedDate = (() => {
+                try {
+                  return format(new Date(a.exam_date + "T00:00:00"), "d MMM yyyy");
+                } catch {
+                  return a.exam_date;
+                }
+              })();
+              return (
+                <div
+                  key={a.assignment_id}
+                  className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2 flex items-start justify-between gap-3"
+                >
+                  <div className="text-sm min-w-0">
+                    <p className="font-medium truncate">{a.exam_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formattedDate} · Room {a.room_number} · {roleLabel}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/exams/${a.exam_id}`}
+                    className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    onClick={() => setAffectedAssignments([])}
+                  >
+                    Reassign
+                    <ExternalLink className="size-3" />
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+        <DialogFooter>
+          <Button
+            onClick={() => {
+              setAffectedAssignments([]);
+              router.push("/invigilators");
+            }}
+          >
+            Dismiss
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </form>
   );
 }

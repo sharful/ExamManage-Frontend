@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import type { Exam, ExamAssignment, Invigilator, TimeSlot } from "@/types";
+import type { Exam, ExamAssignment, ExamCloneResponse, Invigilator, TimeSlot } from "@/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -49,6 +49,24 @@ export interface ConflictError {
 export interface AssignmentResponse {
   assignment: ExamAssignment;
   conflicts: ConflictError[];
+}
+
+export interface BulkRoomResult {
+  room_id: string;
+  success: boolean;
+  assignment?: ExamAssignment | null;
+  reason?: string | null;
+}
+
+export interface BulkAutoAssignResponse {
+  results: BulkRoomResult[];
+  assigned_count: number;
+  failed_count: number;
+}
+
+export interface BulkAutoAssignPayload {
+  exam_id: string;
+  room_ids: string[];
 }
 
 // ── Query keys ─────────────────────────────────────────────────────────────
@@ -157,6 +175,10 @@ export function useCreateAssignment() {
   });
 }
 
+export interface UpdateAssignmentPayload extends Partial<Omit<AssignmentPayload, "exam_id">> {
+  client_updated_at?: string;
+}
+
 export function useUpdateAssignment() {
   const queryClient = useQueryClient();
 
@@ -164,13 +186,16 @@ export function useUpdateAssignment() {
     mutationFn: async ({
       id,
       payload,
+      force = false,
     }: {
       id: string;
-      payload: Partial<Omit<AssignmentPayload, "exam_id">>;
+      payload: UpdateAssignmentPayload;
+      force?: boolean;
     }): Promise<AssignmentResponse> => {
       const { data } = await api.put<AssignmentResponse>(
         `/api/assignments/${id}`,
-        payload
+        payload,
+        { params: force ? { force: "true" } : undefined }
       );
       return data;
     },
@@ -191,6 +216,53 @@ export function useDeleteAssignment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [EXAMS_KEY] });
       queryClient.invalidateQueries({ queryKey: [ASSIGNMENTS_KEY] });
+    },
+  });
+}
+
+export function useBulkAutoAssign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: BulkAutoAssignPayload): Promise<BulkAutoAssignResponse> => {
+      const { data } = await api.post<BulkAutoAssignResponse>(
+        "/api/assignments/bulk",
+        payload
+      );
+      return data;
+    },
+    onSuccess: (_data, payload) => {
+      queryClient.invalidateQueries({ queryKey: [EXAMS_KEY] });
+      queryClient.invalidateQueries({ queryKey: [EXAMS_KEY, payload.exam_id] });
+      queryClient.invalidateQueries({ queryKey: [ASSIGNMENTS_KEY] });
+    },
+  });
+}
+
+export interface CloneExamPayload {
+  new_exam_name: string;
+  new_date: string;
+}
+
+export function useCloneExam() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: CloneExamPayload;
+    }): Promise<ExamCloneResponse> => {
+      const { data } = await api.post<ExamCloneResponse>(
+        `/api/exams/${id}/clone`,
+        payload
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [EXAMS_KEY] });
     },
   });
 }
