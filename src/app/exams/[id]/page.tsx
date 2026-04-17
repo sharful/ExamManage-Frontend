@@ -620,7 +620,7 @@ export default function ExamDetailPage({ params }: Props) {
   const deleteAssignment = useDeleteAssignment();
 
   const { data: roomsData } = useRooms({ limit: 200 });
-  const { data: invData } = useInvigilators({ page: 1, page_size: 500 });
+  const { data: invData } = useInvigilators({ page: 1, limit: 500 });
 
   const roomMap = useMemo(() => {
     const m = new Map<string, Room>();
@@ -630,7 +630,7 @@ export default function ExamDetailPage({ params }: Props) {
 
   const invMap = useMemo(() => {
     const m = new Map<string, Invigilator>();
-    for (const inv of invData?.items ?? []) m.set(inv.id, inv);
+    for (const inv of invData?.data ?? []) m.set(inv.id, inv);
     return m;
   }, [invData]);
 

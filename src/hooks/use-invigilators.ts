@@ -5,6 +5,7 @@ import type {
   InvigilatorStatus,
   InvigilatorUpdateResponse,
   InvigilatorWorkload,
+  PaginationMeta,
   WorkloadSummaryResponse,
 } from "@/types";
 
@@ -12,17 +13,15 @@ import type {
 
 export interface InvigilatorsParams {
   page?: number;
-  page_size?: number;
+  limit?: number;
   search?: string;
   status?: InvigilatorStatus | "";
   department?: string;
 }
 
-export interface PaginatedInvigilators {
-  items: Invigilator[];
-  total: number;
-  page: number;
-  page_size: number;
+export interface InvigilatorListResponse {
+  data: Invigilator[];
+  meta: PaginationMeta;
 }
 
 export interface InvigilatorPayload {
@@ -42,20 +41,20 @@ const INVIGILATORS_KEY = "invigilators" as const;
 // ── Hooks ──────────────────────────────────────────────────────────────────
 
 export function useInvigilators(params: InvigilatorsParams = {}) {
-  const { page = 1, page_size = 20, search, status, department } = params;
+  const { page = 1, limit = 20, search, status, department } = params;
 
   return useQuery({
-    queryKey: [INVIGILATORS_KEY, { page, page_size, search, status, department }],
+    queryKey: [INVIGILATORS_KEY, { page, limit, search, status, department }],
     queryFn: async () => {
       const queryParams: Record<string, string | number> = {
         page,
-        page_size,
+        limit,
       };
       if (search) queryParams.search = search;
       if (status) queryParams.status = status;
       if (department) queryParams.department = department;
 
-      const { data } = await api.get<PaginatedInvigilators>(
+      const { data } = await api.get<InvigilatorListResponse>(
         "/api/invigilators",
         { params: queryParams }
       );
@@ -151,10 +150,10 @@ export function useInvigilatorDepartments() {
   return useQuery({
     queryKey: [INVIGILATORS_KEY, "departments"],
     queryFn: async () => {
-      const { data } = await api.get<PaginatedInvigilators>("/api/invigilators", {
-        params: { page: 1, page_size: 500 },
+      const { data } = await api.get<InvigilatorListResponse>("/api/invigilators", {
+        params: { page: 1, limit: 500 },
       });
-      const deps = data.items
+      const deps = data.data
         .map((i) => i.department)
         .filter((d): d is string => !!d);
       return [...new Set(deps)].sort();

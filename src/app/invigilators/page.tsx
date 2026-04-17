@@ -84,7 +84,7 @@ export default function InvigilatorsPage() {
   // ── Queries
   const { data, isLoading, isError } = useInvigilators({
     page,
-    page_size: PAGE_SIZE,
+    limit: PAGE_SIZE,
     search: debouncedSearch,
     status: statusFilter,
     department: departmentFilter,
@@ -114,7 +114,8 @@ export default function InvigilatorsPage() {
   }, [currentMonthSummary]);
 
   const dutyColumnLabel = `${MONTH_NAMES[currentMonth - 1]} duties`;
-  const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
+  const totalItems = data?.meta.total ?? 0;
+  const totalPages = data ? Math.ceil(totalItems / PAGE_SIZE) : 1;
 
   // Month options for the workload selector (past 12 months + current + next)
   const monthOptions = useMemo(() => {
@@ -242,18 +243,18 @@ export default function InvigilatorsPage() {
             <>
               <div className="hidden lg:block">
                 <InvigilatorTable
-                  data={data?.items ?? []}
+                  data={data?.data ?? []}
                   dutyCountMap={dutyCountMap.size > 0 ? dutyCountMap : undefined}
                   dutyColumnLabel={dutyColumnLabel}
                 />
               </div>
               <div className="flex flex-col gap-2 lg:hidden">
-                {(data?.items ?? []).length === 0 ? (
+                {(data?.data ?? []).length === 0 ? (
                   <p className="py-12 text-center text-muted-foreground text-sm">
                     No invigilators found.
                   </p>
                 ) : (
-                  (data?.items ?? []).map((inv) => (
+                  (data?.data ?? []).map((inv) => (
                     <InvigilatorCard key={inv.id} invigilator={inv} />
                   ))
                 )}
@@ -262,11 +263,11 @@ export default function InvigilatorsPage() {
           )}
 
           {/* Pagination */}
-          {data && data.total > PAGE_SIZE && (
+          {data && totalItems > PAGE_SIZE && (
             <div className="mt-4 flex items-center justify-between gap-2 text-sm">
               <span className="text-muted-foreground">
                 {(page - 1) * PAGE_SIZE + 1}–
-                {Math.min(page * PAGE_SIZE, data.total)} of {data.total}
+                {Math.min(page * PAGE_SIZE, totalItems)} of {totalItems}
               </span>
               <div className="flex items-center gap-1">
                 <Button
