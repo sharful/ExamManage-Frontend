@@ -16,6 +16,7 @@ import { InvigilatorCard } from "@/components/invigilators/invigilator-card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
@@ -36,18 +37,12 @@ const STATUS_OPTIONS: { label: string; value: InvigilatorStatus | "" }[] = [
 // ── Duty count color badge ─────────────────────────────────────────────────
 
 function DutyBadge({ count }: { count: number }) {
-  const cls =
-    count > 10
-      ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-      : count >= 5
-        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-        : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
+  const variant: "pink" | "peach" | "mint" =
+    count > 10 ? "pink" : count >= 5 ? "peach" : "mint";
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}
-    >
+    <Badge variant={variant} className="font-semibold">
       {count}
-    </span>
+    </Badge>
   );
 }
 
@@ -134,8 +129,13 @@ export default function InvigilatorsPage() {
   return (
     <AppShell>
       {/* Page header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold sm:text-2xl">Invigilators</h1>
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-display text-3xl sm:text-4xl">Invigilators</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Directory and monthly workload across your roster.
+          </p>
+        </div>
         <Button
           className="hidden sm:inline-flex"
           onClick={() => router.push("/invigilators/new")}
@@ -145,18 +145,24 @@ export default function InvigilatorsPage() {
         </Button>
       </div>
 
-      {/* Tab switcher */}
-      <div className="mb-4 flex gap-1 border-b border-border">
+      {/* Pill tab switcher */}
+      <div
+        role="tablist"
+        aria-label="Invigilator views"
+        className="mb-5 inline-flex items-center gap-1 rounded-full bg-muted p-1"
+      >
         {(["directory", "workload"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors",
+              "rounded-full px-4 h-9 text-sm font-medium capitalize transition-colors",
               activeTab === tab
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {tab}
@@ -219,7 +225,7 @@ export default function InvigilatorsPage() {
           {isLoading ? (
             <>
               {/* Desktop skeleton */}
-              <div className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden">
+              <div className="hidden lg:block rounded-2xl border border-border bg-card overflow-hidden">
                 <table className="w-full text-sm">
                   <tbody className="divide-y divide-border">
                     {Array.from({ length: PAGE_SIZE }).map((_, i) => (
@@ -322,15 +328,15 @@ export default function InvigilatorsPage() {
 
             <div className="ml-2 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="size-3 rounded-full bg-green-500 inline-block" />
+                <span className="size-3 rounded-full bg-pastel-mint inline-block" />
                 &lt; 5 duties
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-3 rounded-full bg-amber-500 inline-block" />
+                <span className="size-3 rounded-full bg-pastel-peach inline-block" />
                 5–10 duties
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-3 rounded-full bg-red-500 inline-block" />
+                <span className="size-3 rounded-full bg-pastel-pink inline-block" />
                 &gt; 10 duties
               </span>
             </div>
@@ -338,7 +344,7 @@ export default function InvigilatorsPage() {
 
           {/* Workload summary table */}
           {workloadLoading ? (
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <table className="w-full text-sm">
                 <tbody className="divide-y divide-border">
                   {Array.from({ length: 8 }).map((_, i) => (
@@ -348,7 +354,7 @@ export default function InvigilatorsPage() {
               </table>
             </div>
           ) : (
-            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>

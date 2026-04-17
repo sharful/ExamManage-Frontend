@@ -12,6 +12,7 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { ConflictAlerts } from "@/components/dashboard/conflict-alerts";
+import { Badge } from "@/components/ui/badge";
 import { useDashboard } from "@/hooks/use-dashboard";
 import api from "@/lib/api";
 import type { ExamListResponse } from "@/types";
@@ -46,16 +47,16 @@ function TodaySchedule() {
       {isLoading ? (
         <ScheduleSkeleton />
       ) : exams.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           No exams scheduled for today
         </div>
       ) : (
         <>
           {/* Desktop: table */}
-          <div className="hidden sm:block overflow-x-auto rounded-xl border border-border">
+          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/40">
+                <tr className="border-b border-border bg-muted/60">
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                     Exam
                   </th>
@@ -68,7 +69,7 @@ function TodaySchedule() {
                 {exams.map((exam) => (
                   <tr
                     key={exam.id}
-                    className="bg-card hover:bg-muted/30 transition-colors"
+                    className="hover:bg-muted/40 transition-colors"
                   >
                     <td className="px-4 py-3 font-medium">{exam.exam_name}</td>
                     <td className="px-4 py-3">
@@ -88,7 +89,7 @@ function TodaySchedule() {
             {exams.map((exam) => (
               <li
                 key={exam.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
+                className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -108,21 +109,15 @@ function TodaySchedule() {
 
 function TimeSlotBadge({ slot }: { slot: "morning" | "evening" }) {
   return (
-    <span
-      className={
-        slot === "morning"
-          ? "inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-          : "inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
-      }
-    >
+    <Badge variant={slot === "morning" ? "peach" : "lavender"}>
       {slot === "morning" ? "Morning" : "Evening"}
-    </span>
+    </Badge>
   );
 }
 
 function ScheduleSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card divide-y divide-border">
+    <div className="rounded-2xl border border-border bg-card divide-y divide-border">
       {[1, 2, 3].map((i) => (
         <div key={i} className="flex items-center justify-between px-4 py-3">
           <div className="h-4 w-48 rounded bg-muted animate-pulse" />
@@ -139,7 +134,7 @@ function StatsSkeleton() {
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
-          className="rounded-xl border border-border bg-card p-5 animate-pulse"
+          className="rounded-2xl border border-border bg-card p-5 animate-pulse"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-2">
@@ -160,7 +155,14 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-display text-4xl md:text-5xl">
+            Welcome back
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Here&apos;s what&apos;s happening across your exam schedule today.
+          </p>
+        </div>
 
         {/* Top section: stats + conflicts */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">

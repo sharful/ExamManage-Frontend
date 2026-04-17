@@ -20,6 +20,10 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+// ── Pastel tone rotation for mobile cards ─────────────────────────────────
+const ROOM_TONES = ["lavender", "peach", "pink", "mint"] as const;
+type RoomTone = (typeof ROOM_TONES)[number];
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function RoomsPage() {
@@ -69,8 +73,13 @@ export default function RoomsPage() {
   return (
     <AppShell>
       {/* Page header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold sm:text-2xl">Rooms</h1>
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-display text-3xl sm:text-4xl">Rooms</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Seating capacity for every venue.
+          </p>
+        </div>
 
         {/* Desktop "Add Room" button */}
         <Button className="hidden sm:inline-flex" onClick={openAdd}>
@@ -83,7 +92,7 @@ export default function RoomsPage() {
       {isLoading ? (
         <>
           {/* Desktop skeleton */}
-          <div className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden">
+          <div className="hidden lg:block rounded-2xl border border-border bg-card overflow-hidden">
             <table className="w-full text-sm">
               <tbody className="divide-y divide-border">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -117,10 +126,11 @@ export default function RoomsPage() {
                 No rooms found.
               </p>
             ) : (
-              rooms.map((room) => (
+              rooms.map((room, idx) => (
                 <RoomCard
                   key={room.id}
                   room={room}
+                  tone={ROOM_TONES[idx % ROOM_TONES.length]}
                   onEdit={() => openEdit(room)}
                   onDelete={() => {
                     setMobileDeleteTarget(room);
@@ -164,8 +174,8 @@ export default function RoomsPage() {
               role="alert"
               className={
                 mobileHasAssignmentBlock
-                  ? "rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
-                  : "rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  ? "rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 text-sm"
+                  : "rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
               }
             >
               {mobileDeleteError}
@@ -216,28 +226,37 @@ export default function RoomsPage() {
 
 interface RoomCardProps {
   room: Room;
+  tone: RoomTone;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-function RoomCard({ room, onEdit, onDelete }: RoomCardProps) {
+const TONE_BG: Record<RoomTone, string> = {
+  lavender: "bg-pastel-lavender",
+  peach: "bg-pastel-peach",
+  pink: "bg-pastel-pink",
+  mint: "bg-pastel-mint",
+};
+
+function RoomCard({ room, tone, onEdit, onDelete }: RoomCardProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 shadow-sm"
+        "flex items-center gap-3 rounded-2xl px-4 py-3.5 shadow-sm text-pastel-fg",
+        TONE_BG[tone]
       )}
     >
       {/* Icon */}
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Hash className="size-5" />
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card/60">
+        <Hash className="size-5" strokeWidth={1.75} />
       </div>
 
       {/* Content */}
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{room.room_number}</p>
-        <p className="text-2xl font-bold tabular-nums leading-tight text-foreground">
+        <p className="text-display text-3xl tabular-nums leading-tight">
           {room.max_seats}
-          <span className="ml-1 text-xs font-normal text-muted-foreground">
+          <span className="ml-1 text-xs font-normal opacity-75">
             seats
           </span>
         </p>
@@ -249,6 +268,7 @@ function RoomCard({ room, onEdit, onDelete }: RoomCardProps) {
           variant="ghost"
           size="icon-sm"
           onClick={onEdit}
+          className="hover:bg-card/60"
           aria-label={`Edit room ${room.room_number}`}
         >
           <Pencil />
@@ -256,8 +276,8 @@ function RoomCard({ room, onEdit, onDelete }: RoomCardProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={onDelete}
+          className="hover:bg-card/60"
           aria-label={`Delete room ${room.room_number}`}
         >
           <Trash2 />

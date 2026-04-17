@@ -82,21 +82,21 @@ function AssignmentCard({
   const statusIcon = isOverCapacity ? (
     <AlertCircle className="size-4 text-destructive shrink-0" />
   ) : !isFullyAssigned ? (
-    <Clock className="size-4 text-amber-500 shrink-0" />
+    <Clock className="size-4 text-foreground/70 shrink-0" strokeWidth={1.75} />
   ) : (
-    <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 shrink-0" />
+    <CheckCircle2 className="size-4 text-foreground shrink-0" strokeWidth={1.75} />
   );
 
   const borderColor = isOverCapacity
-    ? "border-l-destructive"
+    ? "border-l-[color:var(--pastel-pink)]"
     : !isFullyAssigned
-      ? "border-l-amber-400"
-      : "border-l-green-500";
+      ? "border-l-[color:var(--pastel-peach)]"
+      : "border-l-[color:var(--pastel-mint)]";
 
   return (
     <div
       className={cn(
-        "rounded-lg border bg-card border-l-4 px-4 py-3 flex flex-col gap-2",
+        "rounded-2xl border bg-card border-l-[6px] px-4 py-3 flex flex-col gap-2",
         borderColor
       )}
     >
@@ -135,13 +135,13 @@ function AssignmentCard({
         <div>
           <span className="font-medium text-foreground">Head: </span>
           {head?.name ?? (
-            <span className="text-amber-600">Not assigned</span>
+            <span className="font-medium text-destructive/80">Not assigned</span>
           )}
         </div>
         <div>
           <span className="font-medium text-foreground">Inv 1: </span>
           {inv1?.name ?? (
-            <span className="text-amber-600">Not assigned</span>
+            <span className="font-medium text-destructive/80">Not assigned</span>
           )}
         </div>
         <div>
@@ -332,13 +332,13 @@ function AutoAssignDialog({
           // ── Results view ─────────────────────────────────────────────────
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 text-sm">
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                <CheckCircle2 className="size-4" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-pastel-mint text-pastel-fg px-3 py-1 font-semibold">
+                <CheckCircle2 className="size-4" strokeWidth={1.75} />
                 {result.assigned_count} assigned
               </span>
               {result.failed_count > 0 && (
-                <span className="flex items-center gap-1 text-destructive">
-                  <XCircle className="size-4" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-pastel-pink text-pastel-fg px-3 py-1 font-semibold">
+                  <XCircle className="size-4" strokeWidth={1.75} />
                   {result.failed_count} failed
                 </span>
               )}
@@ -350,23 +350,23 @@ function AutoAssignDialog({
                   <div
                     key={r.room_id}
                     className={cn(
-                      "rounded-md border px-3 py-2 text-sm flex items-start gap-2",
+                      "rounded-2xl px-4 py-3 text-sm flex items-start gap-2",
                       r.success
-                        ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
-                        : "border-destructive/30 bg-destructive/5"
+                        ? "border-transparent bg-pastel-mint text-pastel-fg"
+                        : "border-transparent bg-pastel-pink text-pastel-fg"
                     )}
                   >
                     {r.success ? (
-                      <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="size-4 mt-0.5 shrink-0" strokeWidth={1.75} />
                     ) : (
-                      <XCircle className="size-4 text-destructive mt-0.5 shrink-0" />
+                      <XCircle className="size-4 mt-0.5 shrink-0" strokeWidth={1.75} />
                     )}
                     <div className="min-w-0">
                       <p className="font-medium">
                         Room {room?.room_number ?? r.room_id.slice(0, 8)}
                       </p>
                       {!r.success && r.reason && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs opacity-80 mt-0.5">
                           {r.reason}
                         </p>
                       )}
@@ -403,7 +403,7 @@ function AutoAssignDialog({
                   {unassignedRooms.map((room) => (
                     <label
                       key={room.id}
-                      className="flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-3 rounded-2xl border border-border px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -522,8 +522,8 @@ function CloneExamDialog({
         {result ? (
           // ── Result view ────────────────────────────────────────────────────
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 shrink-0" />
+            <div className="inline-flex items-center gap-2 text-sm rounded-full bg-pastel-mint text-pastel-fg px-4 py-2 w-fit">
+              <CheckCircle2 className="size-4 shrink-0" strokeWidth={1.75} />
               <span>
                 <strong>{result.exam.exam_name}</strong> created with{" "}
                 {result.total_assignments} assignment
@@ -532,8 +532,10 @@ function CloneExamDialog({
             </div>
             {result.conflict_count > 0 && (
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                  <AlertCircle className="size-4 shrink-0" />
+                <p className="text-sm font-semibold flex items-center gap-1.5">
+                  <span className="flex size-7 items-center justify-center rounded-full bg-pastel-peach text-pastel-fg">
+                    <AlertCircle className="size-4 shrink-0" strokeWidth={1.75} />
+                  </span>
                   {result.conflict_count} assignment
                   {result.conflict_count !== 1 ? "s have" : " has"} conflicts:
                 </p>
@@ -543,10 +545,10 @@ function CloneExamDialog({
                     .map((a) => (
                       <div
                         key={a.assignment.id}
-                        className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2 text-xs"
+                        className="rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 text-xs"
                       >
                         {a.conflicts.map((c, i) => (
-                          <p key={i} className="text-amber-700 dark:text-amber-300">
+                          <p key={i}>
                             {c.message}
                           </p>
                         ))}
@@ -721,14 +723,14 @@ export default function ExamDetailPage({ params }: Props) {
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <CardTitle className="text-xl">{exam.exam_name}</CardTitle>
+              <CardTitle className="text-display text-2xl md:text-3xl">{exam.exam_name}</CardTitle>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className="text-sm text-muted-foreground">
                   {formattedDate}
                 </span>
                 <Badge
                   variant={
-                    exam.time_slot === "morning" ? "secondary" : "outline"
+                    exam.time_slot === "morning" ? "peach" : "lavender"
                   }
                   className="capitalize"
                 >
@@ -792,7 +794,7 @@ export default function ExamDetailPage({ params }: Props) {
         </div>
 
         {assignments.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border py-12 text-center">
+          <div className="rounded-2xl border border-dashed border-border py-12 text-center">
             <p className="text-sm text-muted-foreground mb-3">
               No rooms assigned yet.
             </p>

@@ -8,6 +8,8 @@ import {
   DoorOpen,
   BookOpen,
   FileText,
+  GraduationCap,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,13 +25,16 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r border-border bg-sidebar">
-      <div className="flex h-14 items-center border-b border-border px-4">
-        <span className="text-base font-semibold text-sidebar-foreground">
-          ExamManage
-        </span>
-      </div>
-      <nav className="flex flex-col gap-1 p-3 flex-1">
+    <aside className="flex h-full w-16 flex-col items-center gap-2 py-4">
+      <Link
+        href="/dashboard"
+        aria-label="ExamManage home"
+        className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground"
+      >
+        <GraduationCap className="size-5" strokeWidth={2} />
+      </Link>
+
+      <nav className="mt-4 flex flex-col items-center gap-2 flex-1">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname === href || pathname.startsWith(href + "/");
@@ -37,19 +42,28 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              aria-label={label}
+              title={label}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex size-10 items-center justify-center rounded-full transition-colors",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <Icon className="size-4 shrink-0" />
-              {label}
+              <Icon className="size-[18px]" strokeWidth={1.75} />
             </Link>
           );
         })}
       </nav>
+
+      <button
+        aria-label="Settings"
+        title="Settings"
+        className="flex size-10 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+      >
+        <Settings className="size-[18px]" strokeWidth={1.75} />
+      </button>
     </aside>
   );
 }

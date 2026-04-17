@@ -39,7 +39,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-50 w-full max-w-md rounded-xl bg-background shadow-lg",
+          "relative z-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-card text-card-foreground shadow-xl",
           "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0"
         )}
       >

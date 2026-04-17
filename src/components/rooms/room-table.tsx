@@ -201,7 +201,7 @@ export function RoomTable({ data }: RoomTableProps) {
                 disabled={updateMutation.isPending}
                 aria-label="Save changes"
               >
-                <Check className="size-4 text-green-600" />
+                <Check className="size-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -260,7 +260,7 @@ export function RoomTable({ data }: RoomTableProps) {
   return (
     <>
       {/* Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -341,8 +341,8 @@ export function RoomTable({ data }: RoomTableProps) {
               role="alert"
               className={
                 hasAssignmentBlock
-                  ? "rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
-                  : "rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  ? "rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 text-sm"
+                  : "rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
               }
             >
               {deleteError}

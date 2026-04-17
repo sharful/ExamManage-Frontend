@@ -52,8 +52,8 @@ export default function ExamsPage() {
   return (
     <AppShell>
       {/* Page header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold sm:text-2xl">Exams</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-display text-3xl sm:text-4xl">Exams</h1>
         <Button
           className="hidden sm:inline-flex"
           onClick={() => router.push("/exams/new")}
@@ -66,13 +66,13 @@ export default function ExamsPage() {
       {isLoading ? (
         <div className="flex flex-col gap-4 lg:flex-row lg:gap-6 lg:items-start">
           <div className="lg:flex-1 space-y-3">
-            <Skeleton className="h-8 w-full rounded-xl" />
-            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-8 w-full rounded-2xl" />
+            <Skeleton className="h-64 w-full rounded-2xl" />
           </div>
           <div className="lg:w-72 xl:w-80 space-y-2">
-            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-2xl" />
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-xl" />
+              <Skeleton key={i} className="h-14 w-full rounded-2xl" />
             ))}
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function ExamsPage() {
 
           {/* Selected-day exam list (desktop side panel / below on mobile) */}
           <div className="lg:w-72 xl:w-80">
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
                 <p className="text-sm font-semibold">
                   {selectedDate
@@ -144,8 +144,8 @@ export default function ExamsPage() {
                             <Badge
                               variant={
                                 exam.time_slot === "morning"
-                                  ? "secondary"
-                                  : "outline"
+                                  ? "peach"
+                                  : "lavender"
                               }
                               className="text-xs"
                             >

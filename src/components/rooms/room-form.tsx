@@ -143,7 +143,9 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
-        <DialogTitle>{isEdit ? "Edit room" : "Add room"}</DialogTitle>
+        <DialogTitle className="text-display text-2xl">
+          {isEdit ? "Edit room" : "Add room"}
+        </DialogTitle>
       </DialogHeader>
 
       <DialogContent>
@@ -156,7 +158,7 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
           {errors.root && (
             <div
               role="alert"
-              className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              className="rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
             >
               {errors.root.message}
             </div>
@@ -232,7 +234,9 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
         >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-amber-500 shrink-0" />
+              <span className="flex size-8 items-center justify-center rounded-full bg-pastel-peach text-pastel-fg">
+                <AlertTriangle className="size-4" strokeWidth={1.75} />
+              </span>
               Capacity violation
             </DialogTitle>
           </DialogHeader>
@@ -246,17 +250,17 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
               {capacityWarning.violations.map((v) => (
                 <div
                   key={v.assignment_id}
-                  className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2 flex items-center justify-between gap-3"
+                  className="rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 flex items-center justify-between gap-3"
                 >
                   <div className="text-sm min-w-0">
                     <p className="font-medium truncate">{v.exam_name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs opacity-80 mt-0.5">
                       {v.seats} seats assigned
                     </p>
                   </div>
                   <Link
                     href={`/exams/${v.exam_id}`}
-                    className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold hover:underline"
                     onClick={() => setCapacityWarning(null)}
                   >
                     View exam

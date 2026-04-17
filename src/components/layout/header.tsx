@@ -1,14 +1,35 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { LogOut, User, Bell, Search } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+
+const titleMap: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/exams": "Exams",
+  "/invigilators": "Invigilators",
+  "/rooms": "Rooms",
+  "/reports": "Reports",
+  "/login": "Sign in",
+};
+
+function pageTitle(pathname: string): string {
+  if (pathname.startsWith("/exams/new")) return "New exam";
+  if (pathname.startsWith("/exams/")) return "Exam details";
+  if (pathname.startsWith("/invigilators/new")) return "New invigilator";
+  if (pathname.startsWith("/invigilators/")) return "Invigilator";
+  for (const key of Object.keys(titleMap)) {
+    if (pathname === key || pathname.startsWith(key + "/")) return titleMap[key];
+  }
+  return "ExamManage";
+}
 
 export function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -27,40 +48,60 @@ export function Header() {
     router.push("/login");
   }
 
-  return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6">
-      {/* App title shown on mobile/tablet (sidebar hidden) */}
-      <span className="text-base font-semibold lg:hidden">ExamManage</span>
-      {/* Spacer on desktop where sidebar shows the title */}
-      <span className="hidden lg:block" />
+  const title = pageTitle(pathname);
 
-      <div className="relative" ref={ref}>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
-          aria-haspopup="true"
-          aria-expanded={open}
+  return (
+    <header className="flex h-16 items-center justify-between gap-3 px-4 lg:px-6 pt-4 pb-2">
+      <h2 className="text-display text-xl sm:text-2xl truncate">{title}</h2>
+
+      <div className="flex items-center gap-2">
+        <div
+          role="search"
+          className="hidden md:flex items-center gap-2 h-9 rounded-full bg-muted px-3 text-sm text-muted-foreground"
+          aria-hidden="true"
         >
-          <User className="size-4" />
-          <span className="hidden sm:block">
-            {user?.username ?? "Admin"}
-          </span>
+          <Search className="size-4" strokeWidth={1.75} />
+          <span>Search</span>
+        </div>
+
+        <button
+          type="button"
+          aria-label="Notifications"
+          className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Bell className="size-[18px]" strokeWidth={1.75} />
         </button>
-        {open && (
-          <div
-            className={cn(
-              "absolute right-0 top-full z-50 mt-1 w-40 rounded-lg border border-border bg-popover shadow-md"
-            )}
+
+        <div className="relative" ref={ref}>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-2 h-9 pl-1 pr-3 rounded-full bg-muted text-sm font-medium transition-colors hover:bg-muted/70"
+            aria-haspopup="true"
+            aria-expanded={open}
           >
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-popover-foreground transition-colors hover:bg-muted"
+            <span className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <User className="size-3.5" strokeWidth={2} />
+            </span>
+            <span className="hidden sm:block">
+              {user?.username ?? "Admin"}
+            </span>
+          </button>
+          {open && (
+            <div
+              className={cn(
+                "absolute right-0 top-full z-50 mt-2 w-40 rounded-2xl border border-border bg-popover shadow-lg overflow-hidden"
+              )}
             >
-              <LogOut className="size-4" />
-              Logout
-            </button>
-          </div>
-        )}
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-popover-foreground transition-colors hover:bg-muted"
+              >
+                <LogOut className="size-4" />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -53,7 +53,7 @@ export function ExamCalendar({
   const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
       {/* Calendar header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <Button
@@ -106,7 +106,7 @@ export function ExamCalendar({
               className={cn(
                 "relative min-h-[72px] p-1.5 text-left border-b border-r border-border last:border-r-0",
                 "hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-                isSelected && "bg-primary/5 ring-2 ring-inset ring-primary",
+                isSelected && "bg-muted ring-2 ring-inset ring-primary",
                 !isCurrentMonth && "opacity-40"
               )}
             >
@@ -126,7 +126,12 @@ export function ExamCalendar({
                 {dayExams.slice(0, 2).map((exam) => (
                   <span
                     key={exam.id}
-                    className="truncate rounded px-1 py-0.5 text-[10px] font-medium bg-primary/10 text-primary leading-tight"
+                    className={cn(
+                      "truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium leading-tight text-pastel-fg",
+                      exam.time_slot === "morning"
+                        ? "bg-pastel-peach"
+                        : "bg-pastel-lavender"
+                    )}
                     title={`${exam.exam_name} (${exam.time_slot})`}
                   >
                     {exam.exam_name}
@@ -219,10 +224,10 @@ export function ExamDayList({
                 type="button"
                 onClick={() => onDaySelect(date)}
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
+                  "w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors",
                   isSelected
-                    ? "bg-primary/10 text-primary"
-                    : "hover:bg-muted"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card border border-border hover:bg-muted"
                 )}
               >
                 <div className="text-center min-w-[36px]">
@@ -248,7 +253,12 @@ export function ExamDayList({
                     </div>
                   ))}
                 </div>
-                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <span className={cn(
+                  "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium",
+                  isSelected
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-pastel-peach text-pastel-fg"
+                )}>
                   {dayExams.length}
                 </span>
               </button>

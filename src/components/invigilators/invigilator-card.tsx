@@ -18,13 +18,20 @@ export function InvigilatorCard({ invigilator }: InvigilatorCardProps) {
       type="button"
       onClick={() => router.push(`/invigilators/${invigilator.id}`)}
       className={cn(
-        "w-full text-left rounded-xl border border-border bg-card px-4 py-3.5 shadow-sm",
+        "w-full text-left rounded-2xl border border-border bg-card px-4 py-3.5 shadow-sm",
         "flex items-center gap-3 transition-colors",
         "hover:bg-muted/50 active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}
     >
       {/* Avatar initial */}
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+      <div
+        className={cn(
+          "flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-pastel-fg",
+          invigilator.status === "available"
+            ? "bg-pastel-mint"
+            : "bg-pastel-pink"
+        )}
+      >
         {invigilator.name.charAt(0).toUpperCase()}
       </div>
 
@@ -33,7 +40,7 @@ export function InvigilatorCard({ invigilator }: InvigilatorCardProps) {
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-medium">{invigilator.name}</span>
           <Badge
-            variant={invigilator.status === "available" ? "success" : "secondary"}
+            variant={invigilator.status === "available" ? "mint" : "pink"}
             className="shrink-0"
           >
             {invigilator.status === "available" ? "Available" : "Unavailable"}

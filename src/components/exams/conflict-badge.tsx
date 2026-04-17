@@ -36,8 +36,8 @@ export function ConflictBadge({ conflict, className }: ConflictBadgeProps) {
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
         meta.severity === "error"
-          ? "bg-destructive/10 text-destructive"
-          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+          ? "bg-pastel-pink text-pastel-fg"
+          : "bg-pastel-peach text-pastel-fg",
         className
       )}
     >
@@ -45,7 +45,7 @@ export function ConflictBadge({ conflict, className }: ConflictBadgeProps) {
         aria-hidden="true"
         className={cn(
           "size-1.5 rounded-full shrink-0",
-          meta.severity === "error" ? "bg-destructive" : "bg-amber-500"
+          "bg-pastel-fg opacity-70"
         )}
       />
       {meta.label}
@@ -71,10 +71,10 @@ export function ConflictBanner({ conflicts, className }: ConflictBannerProps) {
     <div
       role="alert"
       className={cn(
-        "rounded-lg border px-3 py-2.5 text-sm space-y-1",
+        "rounded-2xl border px-4 py-3 text-sm space-y-1",
         hasErrors
-          ? "border-destructive/30 bg-destructive/10 text-destructive"
-          : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300",
+          ? "border-transparent bg-pastel-pink text-pastel-fg"
+          : "border-transparent bg-pastel-peach text-pastel-fg",
         className
       )}
     >

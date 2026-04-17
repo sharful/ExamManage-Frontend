@@ -1,11 +1,28 @@
 import { cn } from "@/lib/utils";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+type CardTone = "cream" | "pink" | "peach" | "lavender" | "mint" | "amber";
+
+const toneClasses: Record<CardTone, string> = {
+  cream: "bg-card text-card-foreground",
+  pink: "bg-pastel-pink text-pastel-fg border-transparent",
+  peach: "bg-pastel-peach text-pastel-fg border-transparent",
+  lavender: "bg-pastel-lavender text-pastel-fg border-transparent",
+  mint: "bg-pastel-mint text-pastel-fg border-transparent",
+  amber: "bg-pastel-amber text-pastel-fg border-transparent",
+};
+
+function Card({
+  className,
+  tone = "cream",
+  ...props
+}: React.ComponentProps<"div"> & { tone?: CardTone }) {
   return (
     <div
       data-slot="card"
+      data-tone={tone}
       className={cn(
-        "rounded-xl border border-border bg-card text-card-foreground shadow-sm",
+        "rounded-2xl border border-border shadow-sm",
+        toneClasses[tone],
         className
       )}
       {...props}
@@ -54,3 +71,4 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 export { Card, CardHeader, CardTitle, CardDescription, CardContent };
+export type { CardTone };

@@ -56,7 +56,7 @@ export default function InvigilatorDetailPage({ params }: Props) {
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="text-display text-2xl">
             {isNew ? "Add invigilator" : "Edit invigilator"}
           </CardTitle>
         </CardHeader>
@@ -80,16 +80,18 @@ export default function InvigilatorDetailPage({ params }: Props) {
 
       {/* Assigned dates for current month (only shown for existing invigilators) */}
       {!isNew && workload && (
-        <Card className="max-w-2xl mt-4">
+        <Card tone="mint" className="max-w-2xl mt-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarDays className="size-4" />
+              <span className="flex size-8 items-center justify-center rounded-full bg-card/60">
+                <CalendarDays className="size-4" strokeWidth={1.75} />
+              </span>
               Duties in {MONTH_NAMES[currentMonth - 1]} {currentYear}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {formattedDates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm opacity-80">
                 No duties assigned this month.
               </p>
             ) : (
@@ -99,13 +101,13 @@ export default function InvigilatorDetailPage({ params }: Props) {
                     key={thisMonthDates[i]}
                     className="flex items-center gap-2 text-sm"
                   >
-                    <span className="size-1.5 rounded-full bg-primary shrink-0" />
+                    <span className="size-2 rounded-full bg-pastel-fg shrink-0" />
                     {label}
                   </li>
                 ))}
               </ul>
             )}
-            <p className="mt-3 text-xs text-muted-foreground">
+            <p className="mt-3 text-xs opacity-75">
               Total all-time: {workload.total_assignments} assignment
               {workload.total_assignments !== 1 ? "s" : ""}
             </p>

@@ -6,7 +6,7 @@ export function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      className={cn("animate-pulse rounded-xl bg-muted", className)}
       {...props}
     />
   );
@@ -28,7 +28,7 @@ export function SkeletonTableRow({ cells = 4 }: { cells?: number }) {
 /** Stacked card skeletons for mobile list views. */
 export function SkeletonCard() {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
       <Skeleton className="size-10 rounded-full shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-1/2" />

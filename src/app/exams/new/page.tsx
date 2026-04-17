@@ -177,7 +177,7 @@ export default function NewExamPage() {
 
       <Card className="max-w-lg">
         <CardHeader>
-          <CardTitle>New exam</CardTitle>
+          <CardTitle className="text-display text-2xl">New exam</CardTitle>
         </CardHeader>
         <CardContent>
           <Suspense

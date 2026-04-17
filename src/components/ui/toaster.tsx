@@ -20,9 +20,9 @@ export function Toaster() {
           key={t.id}
           role="alert"
           className={cn(
-            "flex items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-medium shadow-lg max-w-sm pointer-events-auto",
+            "flex items-center gap-2.5 rounded-full px-4 py-3 text-sm font-medium shadow-lg max-w-sm pointer-events-auto",
             "animate-in slide-in-from-right-4 fade-in-0",
-            t.type === "success" && "bg-green-600 text-white",
+            t.type === "success" && "bg-pastel-mint text-pastel-fg",
             t.type === "error" && "bg-destructive text-white",
             t.type === "info" && "bg-primary text-primary-foreground"
           )}

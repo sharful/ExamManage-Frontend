@@ -45,10 +45,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
+      {/* Decorative pastel blobs */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 -left-24 size-80 rounded-full bg-pastel-lavender blur-3xl opacity-60"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-32 -right-20 size-96 rounded-full bg-pastel-peach blur-3xl opacity-60"
+      />
+
+      <Card className="relative w-full max-w-md rounded-3xl shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">ExamManage</CardTitle>
+          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">
+            E
+          </div>
+          <CardTitle className="text-display text-3xl">ExamManage</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
@@ -56,7 +69,7 @@ export default function LoginPage() {
             {errors.root && (
               <div
                 role="alert"
-                className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                className="rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
               >
                 {errors.root.message}
               </div>

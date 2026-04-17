@@ -286,7 +286,7 @@ export function AssignmentForm({
       {errors.root && (
         <div
           role="alert"
-          className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+          className="rounded-2xl border-transparent bg-pastel-pink px-4 py-3 text-sm text-pastel-fg"
         >
           {errors.root.message}
         </div>
@@ -501,7 +501,9 @@ export function AssignmentForm({
         >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-amber-500 shrink-0" />
+              <span className="flex size-8 items-center justify-center rounded-full bg-pastel-peach text-pastel-fg">
+                <AlertTriangle className="size-4" strokeWidth={1.75} />
+              </span>
               Assignment modified by someone else
             </DialogTitle>
           </DialogHeader>

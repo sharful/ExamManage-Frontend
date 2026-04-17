@@ -22,35 +22,39 @@ const SEVERITY_MAP: Record<string, Severity> = {
 
 const severityConfig: Record<
   Severity,
-  { icon: typeof AlertCircle; className: string; badge: string }
+  { icon: typeof AlertCircle; chipClass: string }
 > = {
   high: {
     icon: AlertCircle,
-    className: "border-l-4 border-l-red-500 bg-red-50 dark:bg-red-950/20",
-    badge: "text-red-700 dark:text-red-400",
+    chipClass: "bg-pastel-pink text-pastel-fg",
   },
   medium: {
     icon: AlertTriangle,
-    className: "border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-950/20",
-    badge: "text-amber-700 dark:text-amber-400",
+    chipClass: "bg-pastel-peach text-pastel-fg",
   },
   low: {
     icon: Info,
-    className: "border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20",
-    badge: "text-blue-700 dark:text-blue-400",
+    chipClass: "bg-pastel-lavender text-pastel-fg",
   },
 };
 
 function ConflictAlert({ conflict }: { conflict: DashboardConflict }) {
   const severity = SEVERITY_MAP[conflict.type] ?? "low";
-  const { icon: Icon, className, badge } = severityConfig[severity];
+  const { icon: Icon, chipClass } = severityConfig[severity];
 
   const content = (
-    <div className={cn("rounded-md px-3 py-2.5 text-sm", className)}>
-      <div className="flex items-start gap-2">
-        <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", badge)} aria-hidden />
+    <div className="rounded-2xl bg-muted/50 px-3 py-2.5 text-sm hover:bg-muted transition-colors">
+      <div className="flex items-start gap-2.5">
+        <span
+          className={cn(
+            "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full",
+            chipClass
+          )}
+        >
+          <Icon className="size-3.5" strokeWidth={2} aria-hidden />
+        </span>
         <div className="flex flex-col gap-0.5 min-w-0">
-          <span className={cn("font-medium truncate", badge)}>
+          <span className="font-medium truncate">
             {conflict.exam_name ?? "Unknown Exam"}
           </span>
           <span className="text-muted-foreground text-xs leading-snug">
@@ -65,7 +69,7 @@ function ConflictAlert({ conflict }: { conflict: DashboardConflict }) {
     return (
       <Link
         href={`/exams/${conflict.exam_id}`}
-        className="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={`View exam: ${conflict.exam_name}`}
       >
         {content}
@@ -81,10 +85,12 @@ export function ConflictAlerts({ conflicts }: ConflictAlertsProps) {
     <Card className="h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
-          <AlertCircle className="h-4 w-4 text-red-500" aria-hidden />
+          <span className="flex size-6 items-center justify-center rounded-full bg-pastel-pink text-pastel-fg">
+            <AlertCircle className="size-3.5" strokeWidth={2} aria-hidden />
+          </span>
           Active Conflicts
           {conflicts.length > 0 && (
-            <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+            <span className="ml-auto rounded-full bg-pastel-pink px-2.5 py-0.5 text-xs font-semibold text-pastel-fg">
               {conflicts.length}
             </span>
           )}

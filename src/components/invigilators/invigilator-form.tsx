@@ -141,7 +141,7 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
       {errors.root && (
         <div
           role="alert"
-          className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          className="rounded-2xl border-transparent bg-pastel-pink px-4 py-3 text-sm text-pastel-fg"
         >
           {errors.root.message}
         </div>
@@ -301,7 +301,9 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="size-5 text-amber-500 shrink-0" />
+            <span className="flex size-8 items-center justify-center rounded-full bg-pastel-peach text-pastel-fg">
+              <AlertTriangle className="size-4" strokeWidth={1.75} />
+            </span>
             Invigilator marked unavailable
           </DialogTitle>
         </DialogHeader>
@@ -332,17 +334,17 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
               return (
                 <div
                   key={a.assignment_id}
-                  className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-3 py-2 flex items-start justify-between gap-3"
+                  className="rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 flex items-start justify-between gap-3"
                 >
                   <div className="text-sm min-w-0">
                     <p className="font-medium truncate">{a.exam_name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs opacity-80 mt-0.5">
                       {formattedDate} · Room {a.room_number} · {roleLabel}
                     </p>
                   </div>
                   <Link
                     href={`/exams/${a.exam_id}`}
-                    className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold hover:underline"
                     onClick={() => setAffectedAssignments([])}
                   >
                     Reassign

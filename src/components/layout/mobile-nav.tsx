@@ -23,22 +23,23 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 border-t border-border bg-background sm:hidden">
+    <nav className="fixed bottom-3 left-3 right-3 z-50 flex items-center justify-around h-14 rounded-full bg-card border border-border shadow-lg px-2 sm:hidden">
       {navItems.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
+            aria-label={label}
+            title={label}
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] text-[10px] font-medium transition-colors",
+              "flex size-10 items-center justify-center rounded-full transition-colors",
               isActive
-                ? "text-primary"
+                ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Icon className="size-5 shrink-0" />
-            <span>{label}</span>
+            <Icon className="size-[18px]" strokeWidth={1.75} />
           </Link>
         );
       })}

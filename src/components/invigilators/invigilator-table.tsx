@@ -47,16 +47,12 @@ function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
 // ── Duty count badge ───────────────────────────────────────────────────────
 
 function DutyBadge({ count }: { count: number }) {
-  const variant =
-    count > 10
-      ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-      : count >= 5
-        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-        : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
+  const variant: "pink" | "peach" | "mint" =
+    count > 10 ? "pink" : count >= 5 ? "peach" : "mint";
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${variant}`}>
+    <Badge variant={variant} className="font-semibold">
       {count}
-    </span>
+    </Badge>
   );
 }
 
@@ -100,7 +96,7 @@ export function InvigilatorTable({ data, dutyCountMap, dutyColumnLabel = "Duties
     col.accessor("status", {
       header: "Status",
       cell: (info) => (
-        <Badge variant={info.getValue() === "available" ? "success" : "secondary"}>
+        <Badge variant={info.getValue() === "available" ? "mint" : "pink"}>
           {info.getValue() === "available" ? "Available" : "Unavailable"}
         </Badge>
       ),
@@ -169,7 +165,7 @@ export function InvigilatorTable({ data, dutyCountMap, dutyColumnLabel = "Duties
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (

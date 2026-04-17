@@ -84,35 +84,48 @@ export default function ReportsPage() {
   return (
     <AppShell>
       <div className="flex flex-col gap-6">
-        <h1 className="text-xl font-semibold sm:text-2xl">Reports</h1>
+        <div>
+          <h1 className="text-display text-3xl sm:text-4xl">Reports</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Generate duty lists, room schedules, and daily overviews.
+          </p>
+        </div>
 
         {/* ── Controls card ──────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 flex flex-col gap-5">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 flex flex-col gap-5 shadow-sm">
           {/* Report type selector */}
           <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
             <legend className="text-sm font-medium mb-2">Report Type</legend>
             <div className="flex flex-col sm:flex-row gap-2">
-              {REPORT_TYPES.map(({ value, label, description }) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={reportType === value}
-                  onClick={() => setReportType(value)}
-                  className={cn(
-                    "flex-1 text-left rounded-lg border px-4 py-3 text-sm transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                    reportType === value
-                      ? "border-primary bg-primary/5"
-                      : "border-border bg-background hover:bg-muted"
-                  )}
-                >
-                  <p className="font-medium text-foreground">{label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {description}
-                  </p>
-                </button>
-              ))}
+              {REPORT_TYPES.map(({ value, label, description }) => {
+                const isSelected = reportType === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setReportType(value)}
+                    className={cn(
+                      "flex-1 text-left rounded-2xl px-4 py-3 text-sm transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      isSelected
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-muted text-foreground hover:bg-muted/70"
+                    )}
+                  >
+                    <p className="font-semibold">{label}</p>
+                    <p
+                      className={cn(
+                        "text-xs mt-0.5",
+                        isSelected ? "opacity-80" : "text-muted-foreground"
+                      )}
+                    >
+                      {description}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </fieldset>
 
@@ -143,21 +156,20 @@ export default function ReportsPage() {
               <div
                 role="group"
                 aria-labelledby="format-label"
-                className="flex h-9 overflow-hidden rounded-lg border border-border"
+                className="inline-flex h-9 items-center gap-1 rounded-full bg-muted p-1"
               >
-                {(["pdf", "excel"] as ReportFormat[]).map((fmt, i) => (
+                {(["pdf", "excel"] as ReportFormat[]).map((fmt) => (
                   <button
                     key={fmt}
                     type="button"
                     onClick={() => setReportFormat(fmt)}
                     aria-pressed={reportFormat === fmt}
                     className={cn(
-                      "px-5 text-sm font-medium transition-colors",
+                      "rounded-full px-4 h-7 text-xs font-semibold transition-colors",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      i > 0 && "border-l border-border",
                       reportFormat === fmt
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {fmt === "pdf" ? "PDF" : "Excel"}
@@ -188,12 +200,12 @@ export default function ReportsPage() {
           {!reportDate ? null : preview.isLoading ? (
             <PreviewSkeleton />
           ) : preview.isError ? (
-            <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-destructive">
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-destructive">
               Failed to load preview.
             </div>
           ) : !preview.data ||
             preview.data.sections.every((s) => s.rows.length === 0) ? (
-            <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
               No data found for {reportDate}. Assign invigilators to exams on
               this date first.
             </div>
@@ -213,8 +225,8 @@ export default function ReportsPage() {
 function PreviewTable({ section }: { section: PreviewSection }) {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-base font-semibold">{section.title}</h2>
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <h2 className="text-display text-xl">{section.title}</h2>
+      <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
@@ -250,7 +262,7 @@ function PreviewSkeleton() {
   return (
     <div className="flex flex-col gap-2">
       <div className="h-5 w-40 rounded bg-muted animate-pulse" />
-      <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="flex gap-4 px-3 py-3">
             {[1, 2, 3, 4, 5].map((j) => (
