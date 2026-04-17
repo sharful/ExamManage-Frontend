@@ -33,8 +33,8 @@ const invigilatorSchema = z.object({
   mobile: z
     .string()
     .refine(
-      (val) => !val || /^[0-9]{10,11}$/.test(val),
-      "Mobile must be 10–11 digits"
+      (val) => !val || /^\+?\d{7,15}$/.test(val),
+      "Mobile must be 7–15 digits, optionally prefixed with +"
     ),
   email: z
     .string()
