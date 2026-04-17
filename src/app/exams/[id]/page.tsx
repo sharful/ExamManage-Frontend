@@ -636,6 +636,11 @@ export default function ExamDetailPage({ params }: Props) {
     return m;
   }, [invData]);
 
+  const assignedRoomIds = useMemo(
+    () => new Set((exam?.assignments ?? []).map((a) => a.room_id)),
+    [exam?.assignments]
+  );
+
   // Dialog state
   const [showEditExam, setShowEditExam] = useState(false);
   const [showDeleteExam, setShowDeleteExam] = useState(false);
@@ -694,10 +699,6 @@ export default function ExamDetailPage({ params }: Props) {
   }
 
   const assignments: ExamAssignment[] = exam.assignments ?? [];
-  const assignedRoomIds = useMemo(
-    () => new Set(assignments.map((a) => a.room_id)),
-    [assignments]
-  );
 
   const formattedDate = (() => {
     try {
