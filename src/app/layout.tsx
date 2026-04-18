@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans, Noto_Sans_Bengali } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,6 +19,13 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+const notoBengali = Noto_Sans_Bengali({
+  variable: "--font-noto-bengali",
+  subsets: ["bengali"],
+  weight: ["400", "600"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "ExamManage",
   description: "Exam scheduling and invigilator management",
@@ -32,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${dmSans.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
           <QueryProvider>
