@@ -36,6 +36,7 @@ function stub(id: string): Invigilator {
   return {
     id,
     name: "(unknown)",
+    designation: null,
     department: null,
     institute: null,
     mobile: null,
