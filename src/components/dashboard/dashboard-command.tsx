@@ -18,10 +18,10 @@ import { MiniCalendar } from "./mini-calendar";
 import { ConflictAlerts } from "./conflict-alerts";
 import type { DashboardStats } from "@/types";
 
-const SPARK_EXAMS = [4, 6, 5, 8, 7, 9, 5];
-const SPARK_INVIG = [34, 36, 32, 30, 33, 31, 35];
-const SPARK_ROOMS = [8, 11, 9, 12, 10, 14, 9];
-const SPARK_CONFLICTS = [3, 2, 4, 1, 2, 3, 4];
+function fmtDelta(n: number, suffix: string): { dir: "up" | "down" | "neutral"; value: string; suffix: string } {
+  if (n === 0) return { dir: "neutral", value: "±0", suffix };
+  return { dir: n > 0 ? "up" : "down", value: `${n > 0 ? "+" : ""}${n}`, suffix };
+}
 
 interface VariantSwitcherProps {
   variant: number;
@@ -92,36 +92,40 @@ export function DashboardCommand({ stats, variant, onVariant }: DashboardCommand
           label="Exams today"
           value={stats?.exams_today ?? 0}
           variant="blue"
-          spark={SPARK_EXAMS}
+          spark={stats?.history?.map((d) => d.exams) ?? []}
           sparkColor="oklch(0.35 0.10 295)"
-          trend={{ dir: "up", value: "+2", suffix: "vs last Mon" }}
+          trend={fmtDelta(stats?.trends?.exams_delta ?? 0, "vs yesterday")}
         />
         <StatCard
           icon={Users}
           label="Available invigilators"
           value={stats?.available_invigilators ?? 0}
           variant="green"
-          spark={SPARK_INVIG}
+          spark={stats?.history?.map((d) => d.invigilators_assigned) ?? []}
           sparkColor="oklch(0.35 0.10 165)"
-          trend={{ dir: "up", value: "+4", suffix: "since 07:00" }}
+          trend={{
+            dir: "up",
+            value: String(stats?.trends?.invigilators_working_today ?? 0),
+            suffix: "assigned today",
+          }}
         />
         <StatCard
           icon={DoorOpen}
           label="Rooms in use"
           value={stats?.rooms_in_use_today ?? 0}
           variant="amber"
-          spark={SPARK_ROOMS}
+          spark={stats?.history?.map((d) => d.rooms_in_use) ?? []}
           sparkColor="oklch(0.40 0.14 60)"
-          trend={{ dir: "up", value: "+3", suffix: "vs yesterday" }}
+          trend={fmtDelta(stats?.trends?.rooms_delta ?? 0, "vs yesterday")}
         />
         <StatCard
           icon={AlertTriangle}
           label="Active conflicts"
           value={stats?.conflicts.length ?? 0}
           variant={(stats?.conflicts.length ?? 0) > 0 ? "red" : "green"}
-          spark={SPARK_CONFLICTS}
+          spark={stats?.history?.map((d) => d.conflicts) ?? []}
           sparkColor="oklch(0.40 0.17 20)"
-          trend={{ dir: "down", value: "−2", suffix: "resolved" }}
+          trend={fmtDelta(-(stats?.trends?.conflicts_delta ?? 0), "vs yesterday")}
         />
       </div>
 

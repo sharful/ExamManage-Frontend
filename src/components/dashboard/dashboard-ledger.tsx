@@ -13,13 +13,13 @@ import { ConflictAlerts } from "./conflict-alerts";
 import { VariantSwitcher } from "./dashboard-command";
 import type { DashboardStats, Exam, ExamListResponse } from "@/types";
 
-const SPARK_EXAMS = [4, 6, 5, 8, 7, 9, 5];
-const SPARK_INVIG = [34, 36, 32, 30, 33, 31, 35];
-const SPARK_ROOMS = [8, 11, 9, 12, 10, 14, 9];
-const SPARK_CONFLICTS = [3, 2, 4, 1, 2, 3, 4];
-
-function coveragePct(exam: Exam, idx: number): number {
-  return 75 + ((idx * 7) % 25);
+function coveragePct(exam: Exam): number | null {
+  if (!exam.assignments) return null;
+  if (exam.assignments.length === 0) return 0;
+  const fullyStaffed = exam.assignments.filter(
+    (a) => a.head_invigilator_id && a.invigilator1_id
+  ).length;
+  return Math.round((fullyStaffed / exam.assignments.length) * 100);
 }
 
 interface KpiItem {
@@ -53,47 +53,52 @@ export function DashboardLedger({ stats, variant, onVariant }: DashboardLedgerPr
 
   const exams = data?.data ?? [];
 
+  const sparkExams     = stats?.history?.map((d) => d.exams) ?? [];
+  const sparkInvig     = stats?.history?.map((d) => d.invigilators_assigned) ?? [];
+  const sparkRooms     = stats?.history?.map((d) => d.rooms_in_use) ?? [];
+  const sparkConflicts = stats?.history?.map((d) => d.conflicts) ?? [];
+
   const kpis: KpiItem[] = [
     {
       label: "Exams today",
       value: String(stats?.exams_today ?? 0),
       sub: "this date",
-      spark: SPARK_EXAMS,
+      spark: sparkExams,
       tone: "oklch(0.35 0.10 295)",
     },
     {
       label: "Next 7 days",
-      value: "—",
+      value: stats?.exams_next_7_days != null ? String(stats.exams_next_7_days) : "—",
       sub: "upcoming",
-      spark: SPARK_EXAMS,
+      spark: sparkExams,
       tone: "oklch(0.35 0.10 295)",
     },
     {
       label: "Invigilators",
       value: String(stats?.available_invigilators ?? 0),
       sub: "available now",
-      spark: SPARK_INVIG,
+      spark: sparkInvig,
       tone: "oklch(0.35 0.10 165)",
     },
     {
       label: "Rooms",
       value: `${stats?.rooms_in_use_today ?? 0}`,
       sub: "in use today",
-      spark: SPARK_ROOMS,
+      spark: sparkRooms,
       tone: "oklch(0.40 0.14 60)",
     },
     {
       label: "Conflicts",
       value: String(stats?.conflicts.length ?? 0),
       sub: "active",
-      spark: SPARK_CONFLICTS,
+      spark: sparkConflicts,
       tone: "oklch(0.40 0.17 20)",
     },
     {
       label: "Free rooms",
       value: String(stats?.rooms_free_today ?? 0),
       sub: "available today",
-      spark: SPARK_ROOMS,
+      spark: sparkRooms,
       tone: "oklch(0.40 0.14 60)",
     },
   ];
@@ -220,15 +225,15 @@ export function DashboardLedger({ stats, variant, onVariant }: DashboardLedgerPr
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
-                  {exams.map((exam, idx) => {
-                    const cov = coveragePct(exam, idx);
+                  {exams.map((exam) => {
+                    const cov = coveragePct(exam);
                     const hasConflict = stats?.conflicts.some(
                       (c) => c.exam_id === exam.id
                     );
                     const barColor =
-                      cov >= 95
+                      cov != null && cov >= 95
                         ? "bg-pastel-pink"
-                        : cov >= 85
+                        : cov != null && cov >= 85
                         ? "bg-pastel-peach"
                         : "bg-pastel-mint";
                     return (
@@ -252,15 +257,19 @@ export function DashboardLedger({ stats, variant, onVariant }: DashboardLedgerPr
                           {exam.assignments?.reduce((s, a) => s + (a.seats ?? 0), 0) ?? 0}
                         </td>
                         <td className="px-4 py-2.5 hidden lg:table-cell">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-1.5 rounded-full bg-black/[0.08] overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${barColor}`}
-                                style={{ width: `${cov}%` }}
-                              />
+                          {cov == null ? (
+                            <span className="font-mono text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 rounded-full bg-black/[0.08] overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${barColor}`}
+                                  style={{ width: `${cov}%` }}
+                                />
+                              </div>
+                              <span className="font-mono text-xs w-8 text-right">{cov}%</span>
                             </div>
-                            <span className="font-mono text-xs w-8 text-right">{cov}%</span>
-                          </div>
+                          )}
                         </td>
                         <td className="px-4 py-2.5">
                           {hasConflict ? (

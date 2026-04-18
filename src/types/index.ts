@@ -75,6 +75,21 @@ export interface DashboardConflict {
   details: Record<string, unknown> | null;
 }
 
+export interface DailySnapshot {
+  date: string;
+  exams: number;
+  invigilators_assigned: number;
+  rooms_in_use: number;
+  conflicts: number;
+}
+
+export interface DashboardTrends {
+  exams_delta: number;
+  rooms_delta: number;
+  conflicts_delta: number;
+  invigilators_working_today: number;
+}
+
 export interface DashboardStats {
   exams_today: number;
   available_invigilators: number;
@@ -82,6 +97,9 @@ export interface DashboardStats {
   rooms_in_use_today: number;
   rooms_free_today: number;
   conflicts: DashboardConflict[];
+  history: DailySnapshot[];
+  trends: DashboardTrends;
+  exams_next_7_days: number;
 }
 
 export interface AuditLog {

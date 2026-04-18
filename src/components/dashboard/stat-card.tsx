@@ -1,4 +1,4 @@
-import { type LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { type LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, type CardTone } from "@/components/ui/card";
 import { Sparkline } from "./sparkline";
 
@@ -11,7 +11,7 @@ interface StatCardProps {
   variant?: StatVariant;
   spark?: number[];
   sparkColor?: string;
-  trend?: { dir: "up" | "down"; value: string; suffix?: string };
+  trend?: { dir: "up" | "down" | "neutral"; value: string; suffix?: string };
 }
 
 const variantTone: Record<StatVariant, CardTone> = {
@@ -49,8 +49,10 @@ export function StatCard({
         <span className="flex items-center gap-1 text-[11px] font-medium opacity-[0.85] mt-auto pt-2">
           {trend.dir === "up" ? (
             <TrendingUp className="size-3" strokeWidth={2} aria-hidden />
-          ) : (
+          ) : trend.dir === "down" ? (
             <TrendingDown className="size-3" strokeWidth={2} aria-hidden />
+          ) : (
+            <Minus className="size-3" strokeWidth={2} aria-hidden />
           )}
           {trend.value}
           {trend.suffix && <span className="opacity-70"> {trend.suffix}</span>}
