@@ -1,15 +1,17 @@
-import { type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { type LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, type CardTone } from "@/components/ui/card";
+import { Sparkline } from "./sparkline";
 
 type StatVariant = "blue" | "green" | "red" | "amber";
 
 interface StatCardProps {
   icon: LucideIcon;
   label: string;
-  value: number;
+  value: number | string;
   variant?: StatVariant;
-  trend?: number;
+  spark?: number[];
+  sparkColor?: string;
+  trend?: { dir: "up" | "down"; value: string; suffix?: string };
 }
 
 const variantTone: Record<StatVariant, CardTone> = {
@@ -24,30 +26,36 @@ export function StatCard({
   label,
   value,
   variant = "blue",
+  spark,
+  sparkColor,
   trend,
 }: StatCardProps) {
   return (
-    <Card tone={variantTone[variant]} className="p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium opacity-70">{label}</span>
-          <span className="text-display text-4xl">{value}</span>
-          {trend !== undefined && (
-            <span
-              className={cn(
-                "text-xs font-medium mt-1",
-                trend > 0 ? "opacity-90" : "opacity-90"
-              )}
-            >
-              {trend > 0 ? "+" : ""}
-              {trend} from yesterday
-            </span>
+    <Card tone={variantTone[variant]} className="p-[18px] relative overflow-hidden min-h-[120px] flex flex-col gap-1">
+      <span
+        className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/40"
+        aria-hidden
+      >
+        <Icon className="size-4" strokeWidth={1.75} />
+      </span>
+      <span className="text-[12px] font-medium opacity-[0.72] tracking-[0.01em]">{label}</span>
+      <span className="text-display text-[40px] leading-none mt-1">{value}</span>
+      {spark && (
+        <div className="w-full mt-1">
+          <Sparkline data={spark} color={sparkColor ?? "currentColor"} fill height={24} />
+        </div>
+      )}
+      {trend && (
+        <span className="flex items-center gap-1 text-[11px] font-medium opacity-[0.85] mt-auto pt-2">
+          {trend.dir === "up" ? (
+            <TrendingUp className="size-3" strokeWidth={2} aria-hidden />
+          ) : (
+            <TrendingDown className="size-3" strokeWidth={2} aria-hidden />
           )}
-        </div>
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card/60">
-          <Icon className="size-5" strokeWidth={1.75} aria-hidden />
-        </div>
-      </div>
+          {trend.value}
+          {trend.suffix && <span className="opacity-70"> {trend.suffix}</span>}
+        </span>
+      )}
     </Card>
   );
 }

@@ -1,0 +1,157 @@
+"use client";
+
+import { Filter, Plus } from "lucide-react";
+import {
+  CalendarDays,
+  Users,
+  DoorOpen,
+  AlertTriangle,
+} from "lucide-react";
+import { StatCard } from "./stat-card";
+import { TodayTimeline } from "./today-timeline";
+import { TodayTable } from "./today-table";
+import { WorkloadPanel } from "./workload-panel";
+import { RoomUtilization } from "./room-utilization";
+import { QuickActions } from "./quick-actions";
+import { ActivityFeed } from "./activity-feed";
+import { MiniCalendar } from "./mini-calendar";
+import { ConflictAlerts } from "./conflict-alerts";
+import type { DashboardStats } from "@/types";
+
+const SPARK_EXAMS = [4, 6, 5, 8, 7, 9, 5];
+const SPARK_INVIG = [34, 36, 32, 30, 33, 31, 35];
+const SPARK_ROOMS = [8, 11, 9, 12, 10, 14, 9];
+const SPARK_CONFLICTS = [3, 2, 4, 1, 2, 3, 4];
+
+interface VariantSwitcherProps {
+  variant: number;
+  onVariant: (v: number) => void;
+}
+
+export function VariantSwitcher({ variant, onVariant }: VariantSwitcherProps) {
+  return (
+    <div
+      className="inline-flex rounded-full bg-muted p-0.5 gap-0.5"
+      role="tablist"
+      aria-label="Dashboard variant"
+    >
+      {["Command", "Ops", "Ledger"].map((v, idx) => (
+        <button
+          key={v}
+          role="tab"
+          aria-selected={variant === idx}
+          onClick={() => onVariant(idx)}
+          className={[
+            "h-7 px-3 rounded-full text-[12px] font-medium transition-colors",
+            variant === idx
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          ].join(" ")}
+        >
+          {v}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface DashboardCommandProps {
+  stats: DashboardStats | undefined;
+  variant: number;
+  onVariant: (v: number) => void;
+}
+
+export function DashboardCommand({ stats, variant, onVariant }: DashboardCommandProps) {
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Greeting */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-display text-[40px]">Welcome back, Admin</h2>
+          <span className="text-sm text-muted-foreground">
+            Here&apos;s what&apos;s happening across your exam schedule today.
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <VariantSwitcher variant={variant} onVariant={onVariant} />
+          <button className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-muted text-[13px] font-medium hover:bg-muted/70 transition-colors">
+            <Filter className="size-3.5" strokeWidth={1.75} />
+            Filters
+          </button>
+          <button className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-primary text-primary-foreground text-[13px] font-medium hover:opacity-90 transition-opacity">
+            <Plus className="size-3.5" strokeWidth={2} />
+            New exam
+          </button>
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          icon={CalendarDays}
+          label="Exams today"
+          value={stats?.exams_today ?? 0}
+          variant="blue"
+          spark={SPARK_EXAMS}
+          sparkColor="oklch(0.35 0.10 295)"
+          trend={{ dir: "up", value: "+2", suffix: "vs last Mon" }}
+        />
+        <StatCard
+          icon={Users}
+          label="Available invigilators"
+          value={stats?.available_invigilators ?? 0}
+          variant="green"
+          spark={SPARK_INVIG}
+          sparkColor="oklch(0.35 0.10 165)"
+          trend={{ dir: "up", value: "+4", suffix: "since 07:00" }}
+        />
+        <StatCard
+          icon={DoorOpen}
+          label="Rooms in use"
+          value={stats?.rooms_in_use_today ?? 0}
+          variant="amber"
+          spark={SPARK_ROOMS}
+          sparkColor="oklch(0.40 0.14 60)"
+          trend={{ dir: "up", value: "+3", suffix: "vs yesterday" }}
+        />
+        <StatCard
+          icon={AlertTriangle}
+          label="Active conflicts"
+          value={stats?.conflicts.length ?? 0}
+          variant={(stats?.conflicts.length ?? 0) > 0 ? "red" : "green"}
+          spark={SPARK_CONFLICTS}
+          sparkColor="oklch(0.40 0.17 20)"
+          trend={{ dir: "down", value: "−2", suffix: "resolved" }}
+        />
+      </div>
+
+      {/* Main grid */}
+      <div
+        className="grid gap-3 items-start"
+        style={{ gridTemplateColumns: "minmax(0, 2.1fr) minmax(0, 1fr)" }}
+      >
+        <div className="flex flex-col gap-3">
+          <TodayTimeline />
+          <TodayTable />
+        </div>
+        <div className="flex flex-col gap-3">
+          <ConflictAlerts conflicts={stats?.conflicts ?? []} />
+          <QuickActions />
+          <MiniCalendar />
+        </div>
+      </div>
+
+      {/* Workload + Activity */}
+      <div
+        className="grid gap-3 items-start"
+        style={{ gridTemplateColumns: "minmax(0, 2.1fr) minmax(0, 1fr)" }}
+      >
+        <WorkloadPanel />
+        <ActivityFeed />
+      </div>
+
+      {/* Rooms full width */}
+      <RoomUtilization />
+    </div>
+  );
+}
