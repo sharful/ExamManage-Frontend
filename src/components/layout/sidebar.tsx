@@ -9,6 +9,7 @@ import {
   BookOpen,
   FileText,
   GraduationCap,
+  LayoutGrid,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/invigilators", label: "Invigilators", icon: Users },
   { href: "/rooms", label: "Rooms", icon: DoorOpen },
   { href: "/exams", label: "Exams", icon: BookOpen },
+  { href: "/planner", label: "Planner", icon: LayoutGrid },
   { href: "/reports", label: "Reports", icon: FileText },
 ];
 
