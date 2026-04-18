@@ -30,6 +30,7 @@ const invigilatorSchema = z.object({
   name: z.string().min(1, "Name is required"),
   department: z.string(),
   institute: z.string(),
+  designation: z.string(),
   mobile: z
     .string()
     .refine(
@@ -77,6 +78,7 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
       name: "",
       department: "",
       institute: "",
+      designation: "",
       mobile: "",
       email: "",
       status: "available",
@@ -91,6 +93,7 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
         name: invigilator.name,
         department: invigilator.department ?? "",
         institute: invigilator.institute ?? "",
+        designation: invigilator.designation ?? "",
         mobile: invigilator.mobile ?? "",
         email: invigilator.email ?? "",
         status: invigilator.status,
@@ -104,6 +107,7 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
       name: values.name,
       department: values.department || null,
       institute: values.institute || null,
+      designation: values.designation || null,
       mobile: values.mobile || null,
       email: values.email || null,
       status: values.status,
@@ -194,6 +198,22 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
           />
           {errors.institute && (
             <p className="text-xs text-destructive">{errors.institute.message}</p>
+          )}
+        </div>
+
+        {/* Designation */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="designation" className="text-sm font-medium">
+            Designation
+          </label>
+          <Input
+            id="designation"
+            placeholder="e.g. Asst. Professor"
+            aria-invalid={!!errors.designation}
+            {...register("designation")}
+          />
+          {errors.designation && (
+            <p className="text-xs text-destructive">{errors.designation.message}</p>
           )}
         </div>
 

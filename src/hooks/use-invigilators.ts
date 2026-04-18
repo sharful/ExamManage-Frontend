@@ -28,6 +28,7 @@ export interface InvigilatorPayload {
   name: string;
   department?: string | null;
   institute?: string | null;
+  designation?: string | null;
   mobile?: string | null;
   email?: string | null;
   status: InvigilatorStatus;

@@ -88,6 +88,10 @@ export function InvigilatorTable({ data, dutyCountMap, dutyColumnLabel = "Duties
       header: "Institute",
       cell: (info) => info.getValue() ?? <span className="text-muted-foreground">—</span>,
     }),
+    col.accessor("designation", {
+      header: "Designation",
+      cell: (info) => info.getValue() ?? <span className="text-muted-foreground">—</span>,
+    }),
     col.accessor("mobile", {
       header: "Mobile",
       enableSorting: false,
