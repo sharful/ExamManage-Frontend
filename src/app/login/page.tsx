@@ -40,7 +40,14 @@ export default function LoginPage() {
       await login(data.username, data.password);
       router.push("/dashboard");
     } catch {
-      setError("root", { message: "Invalid username or password" });
+      // Don't reveal which field was wrong; do flag both fields so the user
+      // sees which inputs to recheck and gets a single banner explaining why.
+      setError("root", {
+        message:
+          "We couldn't sign you in. Check your username and password, then try again.",
+      });
+      setError("username", { message: "Recheck this field" });
+      setError("password", { message: "Recheck this field" });
     }
   }
 
@@ -69,7 +76,8 @@ export default function LoginPage() {
             {errors.root && (
               <div
                 role="alert"
-                className="rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
+                aria-live="polite"
+                className="rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive px-4 py-3 text-sm"
               >
                 {errors.root.message}
               </div>

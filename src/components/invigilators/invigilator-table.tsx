@@ -64,9 +64,22 @@ interface InvigilatorTableProps {
   dutyCountMap?: Map<string, number>;
   /** Label shown in the duty column header, e.g. "Apr duties" */
   dutyColumnLabel?: string;
+  /** Custom empty-state message shown when there are no rows. */
+  emptyMessage?: string;
+  /** Optional CTA label for the empty state. */
+  addLabel?: string;
+  /** When provided, render a CTA in the empty state. */
+  onAdd?: () => void;
 }
 
-export function InvigilatorTable({ data, dutyCountMap, dutyColumnLabel = "Duties" }: InvigilatorTableProps) {
+export function InvigilatorTable({
+  data,
+  dutyCountMap,
+  dutyColumnLabel = "Duties",
+  emptyMessage = "No invigilators yet.",
+  addLabel = "Add your first invigilator",
+  onAdd,
+}: InvigilatorTableProps) {
   const router = useRouter();
   const deleteMutation = useDeleteInvigilator();
 
@@ -195,9 +208,18 @@ export function InvigilatorTable({ data, dutyCountMap, dutyColumnLabel = "Duties
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="py-12 text-center text-muted-foreground"
+                  className="py-12 text-center"
                 >
-                  No invigilators found.
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      {emptyMessage}
+                    </p>
+                    {onAdd && (
+                      <Button size="sm" onClick={onAdd}>
+                        {addLabel}
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

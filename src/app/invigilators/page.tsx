@@ -252,13 +252,23 @@ export default function InvigilatorsPage() {
                   data={data?.data ?? []}
                   dutyCountMap={dutyCountMap.size > 0 ? dutyCountMap : undefined}
                   dutyColumnLabel={dutyColumnLabel}
+                  onAdd={() => router.push("/invigilators/new")}
                 />
               </div>
               <div className="flex flex-col gap-2 lg:hidden">
                 {(data?.data ?? []).length === 0 ? (
-                  <p className="py-12 text-center text-muted-foreground text-sm">
-                    No invigilators found.
-                  </p>
+                  <div className="flex flex-col items-center gap-3 py-12">
+                    <p className="text-center text-muted-foreground text-sm">
+                      No invigilators yet.
+                    </p>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                      onClick={() => router.push("/invigilators/new")}
+                    >
+                      Add your first invigilator
+                    </button>
+                  </div>
                 ) : (
                   (data?.data ?? []).map((inv) => (
                     <InvigilatorCard key={inv.id} invigilator={inv} />

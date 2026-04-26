@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   DndContext,
   DragOverlay,
@@ -13,7 +14,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, AlertCircle } from "lucide-react";
 import type { Invigilator, TimeSlot } from "@/types";
 import {
   useAvailableInvigilators,
@@ -150,6 +151,21 @@ export function PlannerScreen() {
           onDragCancel={() => planner.setActiveInvigilatorId(null)}
           onDragEnd={planner.handleDragEnd}
         >
+          {planner.draft && (
+            <div
+              role="status"
+              className={cn(
+                "flex items-center gap-2 rounded-2xl border border-pastel-amber/60",
+                "bg-pastel-amber/30 px-4 py-2.5 text-sm text-pastel-fg",
+              )}
+            >
+              <AlertCircle className="size-4 shrink-0" strokeWidth={2} />
+              <span className="flex-1">
+                <strong className="font-semibold">1 unsaved assignment.</strong>{" "}
+                Drop an Invigilator 1 onto the same room to save it.
+              </span>
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[280px_1fr]">
             <InvigilatorPool
               invigilators={availableInvigilators}

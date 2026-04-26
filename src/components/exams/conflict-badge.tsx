@@ -1,3 +1,4 @@
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ConflictError } from "@/hooks/use-exams";
 
@@ -30,24 +31,26 @@ export function ConflictBadge({ conflict, className }: ConflictBadgeProps) {
     severity: "error" as const,
   };
 
+  const Icon = meta.severity === "error" ? AlertCircle : AlertTriangle;
+  const a11yPrefix = meta.severity === "error" ? "Error: " : "Warning: ";
+
   return (
     <span
       title={conflict.message}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium",
         meta.severity === "error"
           ? "bg-pastel-pink text-pastel-fg"
           : "bg-pastel-peach text-pastel-fg",
-        className
+        className,
       )}
     >
-      <span
+      <Icon
         aria-hidden="true"
-        className={cn(
-          "size-1.5 rounded-full shrink-0",
-          "bg-pastel-fg opacity-70"
-        )}
+        className="size-3 shrink-0"
+        strokeWidth={2.25}
       />
+      <span className="sr-only">{a11yPrefix}</span>
       {meta.label}
     </span>
   );
@@ -67,18 +70,22 @@ export function ConflictBanner({ conflicts, className }: ConflictBannerProps) {
     (c) => (CONFLICT_META[c.type]?.severity ?? "error") === "error"
   );
 
+  const Icon = hasErrors ? AlertCircle : AlertTriangle;
+
   return (
     <div
       role="alert"
+      aria-live="polite"
       className={cn(
         "rounded-2xl border px-4 py-3 text-sm space-y-1",
         hasErrors
           ? "border-transparent bg-pastel-pink text-pastel-fg"
           : "border-transparent bg-pastel-peach text-pastel-fg",
-        className
+        className,
       )}
     >
-      <p className="font-medium">
+      <p className="font-medium flex items-center gap-1.5">
+        <Icon aria-hidden="true" className="size-4 shrink-0" strokeWidth={2} />
         {hasErrors ? "Conflict detected" : "Warning"}
       </p>
       <ul className="list-disc list-inside space-y-0.5">

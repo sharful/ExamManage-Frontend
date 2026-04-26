@@ -116,15 +116,33 @@ export default function RoomsPage() {
         <>
           {/* Desktop table: hidden below lg */}
           <div className="hidden lg:block">
-            <RoomTable data={rooms} />
+            <RoomTable
+              data={rooms}
+              onAddRoom={() => {
+                setEditingRoom(undefined);
+                setFormOpen(true);
+              }}
+            />
           </div>
 
           {/* Mobile card list: hidden at lg+ */}
           <div className="flex flex-col gap-2 lg:hidden">
             {rooms.length === 0 ? (
-              <p className="py-12 text-center text-muted-foreground text-sm">
-                No rooms found.
-              </p>
+              <div className="flex flex-col items-center gap-3 py-12">
+                <p className="text-center text-muted-foreground text-sm">
+                  No rooms yet.
+                </p>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                  onClick={() => {
+                    setEditingRoom(undefined);
+                    setFormOpen(true);
+                  }}
+                >
+                  Add your first room
+                </button>
+              </div>
             ) : (
               rooms.map((room, idx) => (
                 <RoomCard
@@ -175,7 +193,7 @@ export default function RoomsPage() {
               className={
                 mobileHasAssignmentBlock
                   ? "rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 text-sm"
-                  : "rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
+                  : "rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive px-4 py-3 text-sm"
               }
             >
               {mobileDeleteError}

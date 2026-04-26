@@ -26,7 +26,7 @@ import {
 const roomSchema = z.object({
   room_number: z.string().min(1, "Room number is required"),
   max_seats: z
-    .number()
+    .number({ message: "Max seats is required" })
     .int("Must be a whole number")
     .min(1, "Must be at least 1"),
 });
@@ -50,6 +50,8 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
 
   // Capacity warning state
   const [capacityWarning, setCapacityWarning] = useState<RoomCapacityWarning | null>(null);
+  // Typed confirmation for capacity reduction force-save
+  const [forceConfirmText, setForceConfirmText] = useState("");
   // Keep last payload so we can re-submit with force=true
   const pendingPayloadRef = useRef<RoomFormValues | null>(null);
 
@@ -58,11 +60,21 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
     handleSubmit,
     setError,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<RoomFormValues>({
     resolver: zodResolver(roomSchema),
-    defaultValues: { room_number: "", max_seats: 30 },
+    defaultValues: { room_number: "", max_seats: undefined as unknown as number },
   });
+
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
+  function requestClose() {
+    if (isDirty) {
+      setShowDiscardConfirm(true);
+      return;
+    }
+    onOpenChange(false);
+  }
 
   // Reset form whenever the dialog opens or the room changes
   useEffect(() => {
@@ -70,9 +82,10 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
       reset(
         room
           ? { room_number: room.room_number, max_seats: room.max_seats }
-          : { room_number: "", max_seats: 30 }
+          : { room_number: "", max_seats: undefined as unknown as number }
       );
       setCapacityWarning(null);
+      setForceConfirmText("");
       pendingPayloadRef.current = null;
     }
   }, [open, room, reset]);
@@ -130,8 +143,10 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
     try {
       await doUpdate(pendingPayloadRef.current, true);
       setCapacityWarning(null);
+      setForceConfirmText("");
     } catch (err) {
       setCapacityWarning(null);
+      setForceConfirmText("");
       const detail =
         isAxiosError(err) && typeof err.response?.data?.detail === "string"
           ? err.response.data.detail
@@ -141,7 +156,17 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Block dismiss-by-overlay/escape if there are unsaved changes.
+        if (!next) {
+          requestClose();
+          return;
+        }
+        onOpenChange(next);
+      }}
+    >
       <DialogHeader>
         <DialogTitle className="text-display text-2xl">
           {isEdit ? "Edit room" : "Add room"}
@@ -158,7 +183,7 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
           {errors.root && (
             <div
               role="alert"
-              className="rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
+              className="rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive px-4 py-3 text-sm"
             >
               {errors.root.message}
             </div>
@@ -208,7 +233,7 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => onOpenChange(false)}
+          onClick={requestClose}
           disabled={isPending}
         >
           Cancel
@@ -224,12 +249,46 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
         </Button>
       </DialogFooter>
 
+      {/* ── Discard-changes confirmation ──────────────────────────────── */}
+      <Dialog
+        open={showDiscardConfirm}
+        onOpenChange={(next) => {
+          if (!next) setShowDiscardConfirm(false);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Discard unsaved changes?</DialogTitle>
+        </DialogHeader>
+        <DialogContent>
+          <p className="text-sm text-muted-foreground">
+            You have unsaved edits. Closing now will discard them.
+          </p>
+        </DialogContent>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowDiscardConfirm(false)}>
+            Keep editing
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              setShowDiscardConfirm(false);
+              onOpenChange(false);
+            }}
+          >
+            Discard changes
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
       {/* ── Capacity violation warning dialog ──────────────────────────── */}
       {capacityWarning && (
         <Dialog
           open={!!capacityWarning}
           onOpenChange={(open) => {
-            if (!open) setCapacityWarning(null);
+            if (!open) {
+              setCapacityWarning(null);
+              setForceConfirmText("");
+            }
           }}
         >
           <DialogHeader>
@@ -273,15 +332,39 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
               You can reduce the capacity anyway and adjust affected assignments
               manually, or cancel to keep the current capacity.
             </p>
+            <div className="mt-3 flex flex-col gap-1.5">
+              <label
+                htmlFor="capacity-force-confirm"
+                className="text-xs font-medium"
+              >
+                Type <span className="font-mono font-semibold">{room?.room_number}</span> to confirm:
+              </label>
+              <Input
+                id="capacity-force-confirm"
+                autoComplete="off"
+                value={forceConfirmText}
+                onChange={(e) => setForceConfirmText(e.target.value)}
+                placeholder={room?.room_number}
+              />
+            </div>
           </DialogContent>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCapacityWarning(null)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCapacityWarning(null);
+                setForceConfirmText("");
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleForceSave}
-              disabled={updateMutation.isPending}
+              disabled={
+                updateMutation.isPending ||
+                forceConfirmText !== (room?.room_number ?? "")
+              }
             >
               {updateMutation.isPending ? "Saving…" : "Reduce capacity anyway"}
             </Button>

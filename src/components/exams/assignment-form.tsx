@@ -282,11 +282,11 @@ export function AssignmentForm({
       noValidate
       className="flex flex-col gap-5"
     >
-      {/* Server / root error shown as conflict banner */}
+      {/* Server / root error */}
       {errors.root && (
         <div
           role="alert"
-          className="rounded-2xl border-transparent bg-pastel-pink px-4 py-3 text-sm text-pastel-fg"
+          className="rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
           {errors.root.message}
         </div>
