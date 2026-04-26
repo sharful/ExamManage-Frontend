@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { format, isAfter, parseISO, startOfDay } from "date-fns";
 import { Calendar, AlertTriangle, User, ArrowUpRight } from "lucide-react";
@@ -14,11 +15,17 @@ export function WidgetRail() {
   const { user } = useAuth();
   const { data: dashboard } = useDashboard();
 
-  const today = format(new Date(), "yyyy-MM-dd");
-  const nextMonth = format(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    "yyyy-MM-dd"
-  );
+  const { today, nextMonth, todayStart } = useMemo(() => {
+    const now = new Date();
+    return {
+      today: format(now, "yyyy-MM-dd"),
+      nextMonth: format(
+        new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+        "yyyy-MM-dd"
+      ),
+      todayStart: startOfDay(now),
+    };
+  }, []);
   const { data: examsData } = useExams({
     date_from: today,
     date_to: nextMonth,
@@ -28,7 +35,7 @@ export function WidgetRail() {
   const upcoming: Exam[] = (examsData?.data ?? [])
     .filter((e) => {
       const d = startOfDay(parseISO(e.exam_date));
-      return !isAfter(startOfDay(new Date()), d);
+      return !isAfter(todayStart, d);
     })
     .slice(0, 3);
 

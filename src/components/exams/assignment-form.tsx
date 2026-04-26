@@ -78,7 +78,10 @@ export function AssignmentForm({
   const pendingValuesRef = useRef<AssignmentFormValues | null>(null);
 
   const { data: roomsData } = useRooms({ limit: 200 });
-  const rooms: Room[] = roomsData?.data ?? [];
+  const rooms: Room[] = useMemo(
+    () => roomsData?.data ?? [],
+    [roomsData],
+  );
 
   const { data: availableInvigilators = [] } = useAvailableInvigilators(
     examDate,

@@ -68,6 +68,20 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
 
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
+  // Adjust capacity-warning state in render when the dialog opens (per the
+  // React docs' "Adjusting some state when a prop changes" pattern). Keeps
+  // setState out of the Effect below.
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevRoom, setPrevRoom] = useState(room);
+  if (prevOpen !== open || prevRoom !== room) {
+    setPrevOpen(open);
+    setPrevRoom(room);
+    if (open) {
+      setCapacityWarning(null);
+      setForceConfirmText("");
+    }
+  }
+
   function requestClose() {
     if (isDirty) {
       setShowDiscardConfirm(true);
@@ -76,7 +90,8 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
     onOpenChange(false);
   }
 
-  // Reset form whenever the dialog opens or the room changes
+  // Reset RHF form state whenever the dialog opens or the room changes.
+  // RHF's reset() manages its own state, so this Effect doesn't call setState.
   useEffect(() => {
     if (open) {
       reset(
@@ -84,8 +99,6 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
           ? { room_number: room.room_number, max_seats: room.max_seats }
           : { room_number: "", max_seats: undefined as unknown as number }
       );
-      setCapacityWarning(null);
-      setForceConfirmText("");
       pendingPayloadRef.current = null;
     }
   }, [open, room, reset]);
@@ -176,7 +189,9 @@ export function RoomForm({ open, onOpenChange, room }: RoomFormProps) {
       <DialogContent>
         <form
           id="room-form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={(e) => {
+            void handleSubmit(onSubmit)(e);
+          }}
           noValidate
           className="flex flex-col gap-4 py-2"
         >

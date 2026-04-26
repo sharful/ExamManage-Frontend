@@ -32,7 +32,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { AssignmentForm } from "@/components/exams/assignment-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogHeader,

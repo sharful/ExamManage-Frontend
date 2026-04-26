@@ -243,10 +243,8 @@ function PreviewTable({ section }: { section: PreviewSection }) {
           </TableHeader>
           <TableBody>
             {section.rows.map((row, rowIdx) => (
-              // eslint-disable-next-line react/no-array-index-key
               <TableRow key={rowIdx}>
                 {row.map((cell, cellIdx) => (
-                  // eslint-disable-next-line react/no-array-index-key
                   <TableCell key={cellIdx}>{cell}</TableCell>
                 ))}
               </TableRow>

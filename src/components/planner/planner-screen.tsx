@@ -53,8 +53,14 @@ export function PlannerScreen() {
 
   const exams = examsQuery.data?.data ?? [];
   const rooms = roomsQuery.data?.data ?? [];
-  const availableInvigilators: Invigilator[] = availableQuery.data ?? [];
-  const allInvigilators: Invigilator[] = allInvigilatorsQuery.data?.data ?? [];
+  const availableInvigilators: Invigilator[] = useMemo(
+    () => availableQuery.data ?? [],
+    [availableQuery.data],
+  );
+  const allInvigilators: Invigilator[] = useMemo(
+    () => allInvigilatorsQuery.data?.data ?? [],
+    [allInvigilatorsQuery.data],
+  );
 
   // Map id → invigilator. Available first so any fresher data wins; all others
   // (already-assigned / unavailable) folded in so slot labels always resolve.

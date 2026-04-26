@@ -29,12 +29,7 @@ export default function ExamsPage() {
     limit: 200,
   });
 
-  const allExams: Exam[] = data?.data ?? [];
-
-  // Exams for selected date
-  const selectedDateStr = selectedDate
-    ? format(selectedDate, "yyyy-MM-dd")
-    : null;
+  const allExams: Exam[] = useMemo(() => data?.data ?? [], [data]);
 
   const selectedDayExams = useMemo(() => {
     if (!selectedDate) return [];
