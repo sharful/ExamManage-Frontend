@@ -91,6 +91,7 @@ export function DashboardCommand({ stats, variant, onVariant }: DashboardCommand
           icon={CalendarDays}
           label="Exams today"
           value={stats?.exams_today ?? 0}
+          unit="scheduled"
           variant="blue"
           spark={stats?.history?.map((d) => d.exams) ?? []}
           sparkColor="oklch(0.35 0.10 295)"
@@ -100,6 +101,7 @@ export function DashboardCommand({ stats, variant, onVariant }: DashboardCommand
           icon={Users}
           label="Available invigilators"
           value={stats?.available_invigilators ?? 0}
+          unit="people"
           variant="green"
           spark={stats?.history?.map((d) => d.invigilators_assigned) ?? []}
           sparkColor="oklch(0.35 0.10 165)"
@@ -113,6 +115,7 @@ export function DashboardCommand({ stats, variant, onVariant }: DashboardCommand
           icon={DoorOpen}
           label="Rooms in use"
           value={stats?.rooms_in_use_today ?? 0}
+          unit="rooms"
           variant="amber"
           spark={stats?.history?.map((d) => d.rooms_in_use) ?? []}
           sparkColor="oklch(0.40 0.14 60)"
@@ -122,6 +125,7 @@ export function DashboardCommand({ stats, variant, onVariant }: DashboardCommand
           icon={AlertTriangle}
           label="Active conflicts"
           value={stats?.conflicts.length ?? 0}
+          unit="to resolve"
           variant={(stats?.conflicts.length ?? 0) > 0 ? "red" : "green"}
           spark={stats?.history?.map((d) => d.conflicts) ?? []}
           sparkColor="oklch(0.40 0.17 20)"

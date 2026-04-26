@@ -65,13 +65,23 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
 
   // Warning dialog when marking an invigilator unavailable
   const [affectedAssignments, setAffectedAssignments] = useState<AffectedAssignment[]>([]);
+  // Discard-changes confirmation when Cancel is clicked with a dirty form
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
+  function handleCancel() {
+    if (isDirty) {
+      setShowDiscardConfirm(true);
+      return;
+    }
+    router.push("/invigilators");
+  }
 
   const {
     register,
     handleSubmit,
     setError,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<InvigilatorFormValues>({
     resolver: zodResolver(invigilatorSchema),
     defaultValues: {
@@ -145,7 +155,7 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
       {errors.root && (
         <div
           role="alert"
-          className="rounded-2xl border-transparent bg-pastel-pink px-4 py-3 text-sm text-pastel-fg"
+          className="rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
           {errors.root.message}
         </div>
@@ -294,7 +304,7 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/invigilators")}
+          onClick={handleCancel}
         >
           Cancel
         </Button>
@@ -383,6 +393,40 @@ export function InvigilatorForm({ invigilator }: InvigilatorFormProps) {
             }}
           >
             Dismiss
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      {/* ── Discard-changes confirmation ──────────────────────────────── */}
+      <Dialog
+        open={showDiscardConfirm}
+        onOpenChange={(open) => {
+          if (!open) setShowDiscardConfirm(false);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Discard unsaved changes?</DialogTitle>
+        </DialogHeader>
+        <DialogContent>
+          <p className="text-sm text-muted-foreground">
+            You have unsaved edits to this invigilator. Leaving now will discard them.
+          </p>
+        </DialogContent>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowDiscardConfirm(false)}
+          >
+            Keep editing
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              setShowDiscardConfirm(false);
+              router.push("/invigilators");
+            }}
+          >
+            Discard changes
           </Button>
         </DialogFooter>
       </Dialog>

@@ -17,6 +17,7 @@ import {
   Trash2,
   Check,
   X,
+  Plus,
 } from "lucide-react";
 import { isAxiosError } from "axios";
 import type { Room } from "@/types";
@@ -64,9 +65,11 @@ interface InlineEdit {
 
 interface RoomTableProps {
   data: Room[];
+  /** When provided, render a "Create your first room" CTA in the empty state. */
+  onAddRoom?: () => void;
 }
 
-export function RoomTable({ data }: RoomTableProps) {
+export function RoomTable({ data, onAddRoom }: RoomTableProps) {
   const updateMutation = useUpdateRoom();
   const deleteMutation = useDeleteRoom();
 
@@ -147,7 +150,7 @@ export function RoomTable({ data }: RoomTableProps) {
       cell: ({ row }) =>
         editing?.id === row.original.id ? (
           <Input
-            className="h-7 w-32"
+            className="h-7 w-full max-w-32"
             value={editing.room_number}
             onChange={(e) =>
               setEditing((prev) =>
@@ -167,7 +170,7 @@ export function RoomTable({ data }: RoomTableProps) {
       cell: ({ row }) =>
         editing?.id === row.original.id ? (
           <Input
-            className="h-7 w-24"
+            className="h-7 w-full max-w-24"
             type="number"
             inputMode="numeric"
             min={1}
@@ -293,9 +296,19 @@ export function RoomTable({ data }: RoomTableProps) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="py-12 text-center text-muted-foreground"
+                  className="py-12 text-center"
                 >
-                  No rooms found.
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      No rooms yet.
+                    </p>
+                    {onAddRoom && (
+                      <Button size="sm" onClick={onAddRoom}>
+                        <Plus />
+                        Add your first room
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -342,7 +355,7 @@ export function RoomTable({ data }: RoomTableProps) {
               className={
                 hasAssignmentBlock
                   ? "rounded-2xl bg-pastel-peach text-pastel-fg px-4 py-3 text-sm"
-                  : "rounded-2xl bg-pastel-pink text-pastel-fg px-4 py-3 text-sm"
+                  : "rounded-2xl border border-destructive/20 bg-destructive/10 text-destructive px-4 py-3 text-sm"
               }
             >
               {deleteError}

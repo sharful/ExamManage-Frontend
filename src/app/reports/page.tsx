@@ -195,6 +195,12 @@ export default function ReportsPage() {
           </div>
         </div>
 
+        {/* ── Mobile placeholder (preview only renders at lg+) ───────────── */}
+        <div className="lg:hidden rounded-2xl border border-dashed border-border bg-card/40 p-6 text-center text-sm text-muted-foreground">
+          Generate &amp; download to view this report on your device. The
+          on-screen preview is available on tablets and desktops.
+        </div>
+
         {/* ── Desktop preview — hidden below lg ──────────────────────────── */}
         <div className="hidden lg:flex flex-col gap-6">
           {!reportDate ? null : preview.isLoading ? (

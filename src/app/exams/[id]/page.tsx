@@ -309,17 +309,28 @@ function AutoAssignDialog({
     }
   }
 
-  async function handleAutoAssign() {
-    if (selected.size === 0) return;
+  async function handleAutoAssign(roomIds?: string[]) {
+    const target = roomIds ?? [...selected];
+    if (target.length === 0) return;
     try {
       const response = await bulkAutoAssign.mutateAsync({
         exam_id: examId,
-        room_ids: [...selected],
+        room_ids: target,
       });
       setResult(response);
     } catch {
-      // handled by result being null; toast if needed
+      toast(
+        "Auto-assign failed — please try again or assign rooms manually.",
+        "error",
+      );
     }
+  }
+
+  function handleRetryFailed() {
+    if (!result) return;
+    const failedIds = result.results.filter((r) => !r.success).map((r) => r.room_id);
+    if (failedIds.length === 0) return;
+    void handleAutoAssign(failedIds);
   }
 
   return (
@@ -427,14 +438,28 @@ function AutoAssignDialog({
       </DialogContent>
       <DialogFooter>
         {result ? (
-          <Button onClick={() => onOpenChange(false)}>Done</Button>
+          <>
+            {result.failed_count > 0 && (
+              <Button
+                variant="outline"
+                onClick={handleRetryFailed}
+                disabled={bulkAutoAssign.isPending}
+              >
+                <Wand2 />
+                {bulkAutoAssign.isPending
+                  ? "Retrying…"
+                  : `Retry ${result.failed_count} failed`}
+              </Button>
+            )}
+            <Button onClick={() => onOpenChange(false)}>Done</Button>
+          </>
         ) : (
           <>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button
-              onClick={handleAutoAssign}
+              onClick={() => handleAutoAssign()}
               disabled={
                 bulkAutoAssign.isPending ||
                 selected.size === 0 ||
@@ -520,24 +545,19 @@ function CloneExamDialog({
       </DialogHeader>
       <DialogContent className="pb-2">
         {result ? (
-          // ── Result view ────────────────────────────────────────────────────
-          <div className="flex flex-col gap-3">
-            <div className="inline-flex items-center gap-2 text-sm rounded-full bg-pastel-mint text-pastel-fg px-4 py-2 w-fit">
-              <CheckCircle2 className="size-4 shrink-0" strokeWidth={1.75} />
-              <span>
-                <strong>{result.exam.exam_name}</strong> created with{" "}
-                {result.total_assignments} assignment
-                {result.total_assignments !== 1 ? "s" : ""}.
-              </span>
-            </div>
+          // ── Result view: conflicts first (actionable), then success summary
+          <div
+            className="flex flex-col gap-3"
+            aria-live="polite"
+          >
             {result.conflict_count > 0 && (
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-semibold flex items-center gap-1.5">
                   <span className="flex size-7 items-center justify-center rounded-full bg-pastel-peach text-pastel-fg">
                     <AlertCircle className="size-4 shrink-0" strokeWidth={1.75} />
                   </span>
-                  {result.conflict_count} assignment
-                  {result.conflict_count !== 1 ? "s have" : " has"} conflicts:
+                  Resolve {result.conflict_count} conflict
+                  {result.conflict_count !== 1 ? "s" : ""} after cloning:
                 </p>
                 <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
                   {result.assignments
@@ -557,6 +577,14 @@ function CloneExamDialog({
                 </div>
               </div>
             )}
+            <div className="inline-flex items-center gap-2 text-sm rounded-full bg-pastel-mint text-pastel-fg px-4 py-2 w-fit">
+              <CheckCircle2 className="size-4 shrink-0" strokeWidth={1.75} />
+              <span>
+                <strong>{result.exam.exam_name}</strong> created with{" "}
+                {result.total_assignments} assignment
+                {result.total_assignments !== 1 ? "s" : ""}.
+              </span>
+            </div>
           </div>
         ) : (
           // ── Form view ──────────────────────────────────────────────────────

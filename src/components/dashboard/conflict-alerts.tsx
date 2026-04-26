@@ -22,36 +22,44 @@ const SEVERITY_MAP: Record<string, Severity> = {
 
 const severityConfig: Record<
   Severity,
-  { icon: typeof AlertCircle; chipClass: string }
+  { icon: typeof AlertCircle; chipClass: string; rowClass: string; srLabel: string }
 > = {
   high: {
     icon: AlertCircle,
-    chipClass: "bg-pastel-pink text-pastel-fg",
+    chipClass: "bg-destructive text-white",
+    rowClass:
+      "bg-destructive/10 border border-destructive/30 hover:bg-destructive/15",
+    srLabel: "High severity",
   },
   medium: {
     icon: AlertTriangle,
     chipClass: "bg-pastel-peach text-pastel-fg",
+    rowClass: "bg-pastel-peach/40 border border-transparent hover:bg-pastel-peach/60",
+    srLabel: "Medium severity",
   },
   low: {
     icon: Info,
     chipClass: "bg-pastel-lavender text-pastel-fg",
+    rowClass: "bg-muted/50 border border-transparent hover:bg-muted",
+    srLabel: "Low severity",
   },
 };
 
 function ConflictAlert({ conflict }: { conflict: DashboardConflict }) {
   const severity = SEVERITY_MAP[conflict.type] ?? "low";
-  const { icon: Icon, chipClass } = severityConfig[severity];
+  const { icon: Icon, chipClass, rowClass, srLabel } = severityConfig[severity];
 
   const content = (
-    <div className="rounded-2xl bg-muted/50 px-3 py-2.5 text-sm hover:bg-muted transition-colors">
+    <div className={cn("rounded-2xl px-3 py-2.5 text-sm transition-colors", rowClass)}>
       <div className="flex items-start gap-2.5">
         <span
           className={cn(
             "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full",
-            chipClass
+            chipClass,
           )}
         >
           <Icon className="size-3.5" strokeWidth={2} aria-hidden />
+          <span className="sr-only">{srLabel}: </span>
         </span>
         <div className="flex flex-col gap-0.5 min-w-0">
           <span className="font-medium truncate">

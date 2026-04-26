@@ -103,9 +103,11 @@ export function ExamCalendar({
               key={key}
               type="button"
               onClick={() => onDaySelect(day)}
+              aria-current={isTodayDay ? "date" : undefined}
               className={cn(
-                "relative min-h-[72px] p-1.5 text-left border-b border-r border-border last:border-r-0",
+                "relative min-h-[84px] p-1.5 text-left border-b border-r border-border last:border-r-0",
                 "hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                isTodayDay && "ring-2 ring-inset ring-primary",
                 isSelected && "bg-muted ring-2 ring-inset ring-primary",
                 !isCurrentMonth && "opacity-40"
               )}
@@ -113,21 +115,20 @@ export function ExamCalendar({
               <span
                 className={cn(
                   "flex size-6 items-center justify-center rounded-full text-xs font-medium mb-1",
-                  isTodayDay &&
-                    "bg-primary text-primary-foreground",
+                  isTodayDay && "bg-primary text-primary-foreground",
                   !isTodayDay && "text-foreground"
                 )}
               >
                 {format(day, "d")}
               </span>
 
-              {/* Exam blocks — show up to 2, then "+N more" */}
+              {/* Exam blocks — show up to 2, then a "+N more" badge */}
               <div className="flex flex-col gap-0.5">
                 {dayExams.slice(0, 2).map((exam) => (
                   <span
                     key={exam.id}
                     className={cn(
-                      "truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium leading-tight text-pastel-fg",
+                      "truncate rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-tight text-pastel-fg",
                       exam.time_slot === "morning"
                         ? "bg-pastel-peach"
                         : "bg-pastel-lavender"
@@ -138,7 +139,16 @@ export function ExamCalendar({
                   </span>
                 ))}
                 {dayExams.length > 2 && (
-                  <span className="text-[10px] text-muted-foreground pl-1">
+                  <span
+                    className={cn(
+                      "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      "bg-foreground/10 text-foreground"
+                    )}
+                    title={dayExams
+                      .slice(2)
+                      .map((e) => `${e.exam_name} (${e.time_slot})`)
+                      .join("\n")}
+                  >
                     +{dayExams.length - 2} more
                   </span>
                 )}

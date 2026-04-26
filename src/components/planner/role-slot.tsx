@@ -24,6 +24,59 @@ interface RoleSlotProps {
   onRemove: () => void;
 }
 
+/**
+ * Slot ring priority — only one of these renders at a time so the user
+ * can read the slot state at a glance:
+ *   conflict  → destructive ring
+ *   pending   → primary ring (subtle)
+ *   isOver    → primary ring (drop target)
+ * The draft state is shown with a corner badge instead of a ring so it
+ * never collides with the others.
+ */
+function ringClass({
+  hasConflict,
+  isPending,
+  isOver,
+  occupied,
+}: {
+  hasConflict: boolean;
+  isPending: boolean;
+  isOver: boolean;
+  occupied: boolean;
+}) {
+  if (hasConflict)
+    return "ring-2 ring-destructive ring-offset-1 ring-offset-background";
+  if (isPending)
+    return "ring-2 ring-primary/40 ring-offset-1 ring-offset-background";
+  if (isOver) {
+    return occupied
+      ? "ring-2 ring-primary/60 ring-offset-1 ring-offset-background"
+      : "border-primary bg-primary/10 text-primary";
+  }
+  return "";
+}
+
+function describeState({
+  invigilator,
+  hasConflict,
+  isPending,
+  isDraft,
+  role,
+}: {
+  invigilator?: Invigilator | null;
+  hasConflict: boolean;
+  isPending: boolean;
+  isDraft: boolean;
+  role: RoleKey;
+}) {
+  const roleLabel = ROLE_LABEL[role];
+  if (hasConflict) return `Conflict on ${roleLabel}. The last drop was rejected — try a different invigilator.`;
+  if (isPending) return `Saving ${roleLabel} assignment.`;
+  if (isDraft) return `${roleLabel} is unsaved. Drop Invigilator 1 onto the same room to save.`;
+  if (invigilator) return `${roleLabel}: ${invigilator.name}.`;
+  return `${roleLabel} is empty. Drop an invigilator here to assign.`;
+}
+
 export function RoleSlot({
   roomId,
   role,
@@ -37,6 +90,23 @@ export function RoleSlot({
   const { setNodeRef, isOver } = useDroppable({ id });
 
   const isOptional = role === "inv2";
+  const occupied = !!invigilator;
+
+  const ring = ringClass({
+    hasConflict,
+    isPending,
+    isOver: isOver && !hasConflict && !isPending,
+    occupied,
+  });
+
+  const descriptionId = `slot-${id}-desc`;
+  const description = describeState({
+    invigilator,
+    hasConflict,
+    isPending,
+    isDraft,
+    role,
+  });
 
   return (
     <div className="flex flex-col gap-1">
@@ -52,22 +122,30 @@ export function RoleSlot({
         ref={setNodeRef}
         role="group"
         aria-label={`Room role ${ROLE_LABEL[role]} drop zone`}
+        aria-describedby={descriptionId}
         className={cn(
           "relative flex min-h-[44px] items-center justify-between gap-2 rounded-xl border-2 px-3 py-1.5 text-sm transition-colors",
-          invigilator
+          occupied
             ? "border-transparent bg-pastel-mint text-pastel-fg"
             : "border-dashed border-border bg-background/60",
-          isOver &&
-            !invigilator &&
-            "border-primary bg-primary/10 text-primary",
-          isOver &&
-            invigilator &&
-            "ring-2 ring-primary/60 ring-offset-1 ring-offset-background",
-          hasConflict &&
-            "ring-2 ring-destructive ring-offset-1 ring-offset-background",
-          isDraft && "ring-1 ring-pastel-amber ring-offset-1 ring-offset-background"
+          ring,
         )}
       >
+        {isDraft && (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute -top-1.5 right-2 rounded-full bg-pastel-amber px-1.5 py-0.5",
+              "text-[9px] font-semibold uppercase tracking-wide text-pastel-fg",
+              "shadow-sm",
+            )}
+          >
+            Draft
+          </span>
+        )}
+        <span id={descriptionId} className="sr-only">
+          {description}
+        </span>
         {invigilator ? (
           <>
             <div className="flex min-w-0 flex-1 flex-col">
@@ -93,7 +171,7 @@ export function RoleSlot({
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-full bg-background/70 text-muted-foreground",
                 "transition-colors hover:bg-background hover:text-foreground",
-                "disabled:opacity-50"
+                "disabled:opacity-50",
               )}
             >
               {isPending ? (

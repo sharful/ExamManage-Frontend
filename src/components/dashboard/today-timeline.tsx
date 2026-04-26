@@ -70,8 +70,22 @@ export function TodayTimeline() {
 
   const exams = data?.data ?? [];
   const lanes = buildLanes(exams);
+  const totalLaneCapacity = 5; // 2 morning + 2 evening + 1 morning overflow
+  const overflowCount = Math.max(0, exams.length - totalLaneCapacity);
   const pctNow = nowPct();
   const showNow = pctNow >= 0 && pctNow <= 100;
+
+  // Local timezone abbreviation, e.g. "PKT" or "GMT+5". Falls back to offset.
+  const tzLabel = (() => {
+    try {
+      const parts = new Intl.DateTimeFormat(undefined, {
+        timeZoneName: "short",
+      }).formatToParts(new Date());
+      return parts.find((p) => p.type === "timeZoneName")?.value ?? "Local";
+    } catch {
+      return "Local";
+    }
+  })();
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -80,6 +94,9 @@ export function TodayTimeline() {
         <span className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-0.5 text-[11px] font-semibold">
           <span className="size-1.5 rounded-full bg-destructive inline-block" />
           Live
+        </span>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          ({tzLabel})
         </span>
         <span className="ml-auto text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           {format(new Date(), "EEEE, d MMM")}
@@ -116,6 +133,7 @@ export function TodayTimeline() {
                 {lane.map((block, bIdx) => (
                   <div
                     key={bIdx}
+                    title={block.label}
                     className={`absolute top-1 bottom-1 rounded-full flex items-center gap-2 px-3 text-[12px] font-semibold overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] ${TONE_CLASSES[block.tone] ?? "bg-muted"}`}
                     style={{
                       left: `${toPct(block.start)}%`,
@@ -127,6 +145,14 @@ export function TodayTimeline() {
                 ))}
               </div>
             ))}
+
+        {/* Overflow notice — keeps the user honest about what's NOT shown */}
+        {!isLoading && overflowCount > 0 && (
+          <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+            +{overflowCount} more exam{overflowCount === 1 ? "" : "s"} not shown.
+            See the schedule table below.
+          </p>
+        )}
 
         {/* Now indicator */}
         {showNow && (
