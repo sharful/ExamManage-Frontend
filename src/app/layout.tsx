@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans, Noto_Sans_Bengali } from "next/font/google";
+import { Space_Grotesk, Inter, Noto_Sans_Bengali } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -27,8 +27,9 @@ const notoBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
-  title: "ExamManage",
-  description: "Exam scheduling and invigilator management",
+  title: "ExamManage — Plan. Prepare. Perform.",
+  description:
+    "Plan, prepare, and perform — modern exam scheduling and invigilator management.",
 };
 
 export default function RootLayout({
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${dmSans.variable} ${notoBengali.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
           <QueryProvider>

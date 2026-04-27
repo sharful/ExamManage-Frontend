@@ -15,6 +15,8 @@ const badgeVariants = cva(
         outline: "border-border text-foreground",
         success:
           "border-transparent bg-pastel-mint text-pastel-fg",
+        green:
+          "border-transparent bg-pastel-mint text-[#15803D]",
         warning:
           "border-transparent bg-pastel-amber text-pastel-fg",
         pink: "border-transparent bg-pastel-pink text-pastel-fg",
