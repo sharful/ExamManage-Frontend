@@ -14,6 +14,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { LogoMark, Wordmark } from "@/components/brand/logo";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -64,11 +65,11 @@ export default function LoginPage() {
       />
 
       <Card className="relative w-full max-w-md rounded-3xl shadow-lg">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">
-            E
-          </div>
-          <CardTitle className="text-display text-3xl">ExamManage</CardTitle>
+        <CardHeader className="items-center text-center">
+          <LogoMark size={56} className="mx-auto mb-3" />
+          <CardTitle className="text-3xl">
+            <Wordmark className="text-3xl" />
+          </CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
